@@ -1,0 +1,45 @@
+<fieldset class="box">
+  <legend><%= label_tag("principal_search", l(:label_principal_search)) %></legend>
+  <p><%= text_field_tag('principal_search', nil) %></p>
+  <%= javascript_tag "observeSearchfield('principal_search', null, '#{ escape_javascript autocomplete_project_memberships_path(@project, :format => 'js') }')" %>
+  <div id="principals_for_new_member">
+    <%= render_principals_for_new_members(@project) %>
+  </div>
+</fieldset>
+<fieldset class="box">
+  <legend><%= l(:label_role_plural) %> <%= toggle_checkboxes_link('.roles-selection input') %></legend>
+  <div class="roles-selection">
+    <% User.current.managed_roles(@project).each do |role| %>
+      <label><%= check_box_tag 'membership[role_ids][]', role.id, false, :id => nil %> <%= role %></label>
+    <% end %>
+  </div>
+</fieldset>
+
+<fieldset class="box">
+  <legend><%= l(:field_user_calendar_id) %></legend>
+  <p><label for='user_calendar_id'><%= l(:field_user_calendar_id) %></label>
+  <%= select_tag('membership[user_calendar_id]', content_tag('option', "--- #{l(:label_default)} (#{UserCalendar.default.nil? ? "" : UserCalendar.default.name}) ---", :value => '') + 
+	options_from_collection_for_select(UserCalendar.order("name"), 'id', 'name'), :onchange => "get_calendar()", :id => "membership_user_calendar") %></p>
+  <br>
+  <div class="div-user-calendar">
+    <% hours_for_edit(UserCalendar.default.user_calendar_hours) rescue "" %>
+    <%= calendar_widget_members(hours_for_edit(UserCalendar.default.user_calendar_hours)) rescue "" %>
+  </div>
+</fieldset>
+<style>
+.ui-selected{
+	background-color: #407FF7;
+}
+</style>
+
+<%= javascript_tag do %>
+function get_calendar(){
+  $.ajax({
+    type: "POST",
+	url: '<%= get_calendar_table_path %>',
+	data: { id: $("#membership_user_calendar" ).val() },
+	success: function(msg){
+    },
+  });
+}
+<% end %>

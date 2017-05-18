@@ -1,0 +1,289 @@
+<% project = @project || @issue.allowed_target_projects.first %>
+<% if @issue.is_committee? %>
+    <%= hidden_field_tag 'topic_counter', 0, :id => 'topic_counter' %>
+  <p>
+    <label><%= l(:field_objectives) %></label>
+    <%= text_area_tag :committee_objectives, (@issue.origin.objectives rescue Committee.first.objectives), :rows => 2, :class => "wiki", :disabled => true %>
+  </p>
+  <p>
+    <label><%= l(:field_kpi) %></label>
+    <%= text_area_tag :committee_kpi, (@issue.origin.kpi rescue Committee.first.kpi), :rows => 2, :class => "wiki", :disabled => true %>
+  </p>
+  <p>
+    <label><%= l(:field_deliverable) %></label>
+    <%= text_area_tag :committee_deliverable, (@issue.origin.deliverable rescue Committee.first.deliverable), :rows => 2, :class => "wiki", :disabled => true %>
+  </p>
+
+  <%= render :partial => 'issue_attendants' %>
+
+  <fieldset>
+    <legend><%= l(:label_topics) %>&nbsp;<%= link_to_function(image_tag('add.png', :style => 'vertical-align: middle;', :title => l(:label_add_topic)),
+                                                        "add_topic();") %></legend>
+    <% i = 1 %>
+    <div id="topics">
+      <% if params[:topics].present? && !params[:topics].nil? %>
+        <% params[:topics].each do |random, topic| %>
+            <div id="topic_<%= random %>" style="border-bottom: #FFCF00 solid 1px; margin-bottom: 5px;" class="topic_counter">
+              <p style="padding-left: 110px;">
+                <label id="label_topics_<%= random %>}" style="display: block;float: left;">
+                  <%= l(:label_presented_by) %>
+                </label>
+                <%= text_field_tag "topics_presented_by[#{random}]", (params[:topics_presented_by] && params[:topics_presented_by][random] ? params[:topics_presented_by][random] : ''), :class => 'topic_presented_by', :id => "topics_presented_by_#{random}", :size => 60 %>
+              </p>
+              <p style="padding-left: 110px;">
+                <label id="label_topics_<%= random %>}" style="display: block;float: left;">
+                  <%= l(:label_detail) %>
+                </label>
+                <%= text_field_tag "topics_detail[#{random}]", (params[:topics_detail] && params[:topics_detail][random] ? params[:topics_detail][random] : ''), :class => 'topic_detail', :id => "topics_detail_#{random}", :size => 60 %>
+              </p>
+              <p style="padding-left: 110px;">
+                <label id="label_topics_<%= random %>}" style="display: block;float: left;">
+                  <%= l(:label_topic_without_number) + i.to_s %><span class="required"> *</span>
+                </label>
+                <%= text_area_tag "topics[#{random}]", topic, :rows => 5, :class => 'topic_subject', :id => "topics_#{random}" %>
+                <% if params["topics_ids"].present? && params["topics_ids"][random].present? && !params["topics_ids"][random].blank?%>
+                    <%= hidden_field_tag "topics_ids[#{random}]", params["topics_ids"][random]%>
+                <% end %>
+
+                <%= link_to_function(image_tag('delete.png', :style => 'vertical-align: middle;', :title => l(:label_delete_topic)),
+                                     "del_topic('topic_#{random}');") %>
+
+              </p>
+
+              <table class="list">
+                <thead><tr>
+                  <th width="35%">
+                    <%= link_to_function(image_tag('duplicate.png', :style => 'vertical-align: middle;', :title => l(:label_add_task_topic)),
+                                         "add_issue_topic('#{random}', '0');") %>
+                    &nbsp;&nbsp;
+                    <%= l(:field_task) %> <span class="required"> *</span>
+                  </th>
+                  <th><%= l(:field_assigned_to) %></th>
+                  <th><%= l(:field_project_priority) %><span class="required"> *</span></th>
+                  <th><%= l(:field_term_date) %></th>
+                  <th width="1%">R</th>
+                  <th width="1%"></th>
+                </tr></thead>
+                <tbody id="tbody_<%= random %>">
+                  <% if params[:issue_topic].present? && params[:issue_topic]["#{random}"].present? && !params[:issue_topic]["#{random}"].nil?%>
+                    <%= render :partial => 'issues/issue_table_row', :locals => {:row => random, :issue_topics => nil }%>
+                  <% end %>
+                </tbody>
+              </table>
+              <table class="list">
+                <thead><tr>
+                  <th width="35%">
+                    <%= link_to_function(image_tag('duplicate.png', :style => 'vertical-align: middle;', :title => l(:label_add_desition_topic)),
+                                         "add_issue_topic('#{random}', '0', 5);") %>
+                    &nbsp;&nbsp;
+                    <%= l(:field_desition) %> <span class="required"> *</span>
+                  </th>
+                  <th><%= l(:field_project_priority) %></th>
+                  <th><%= l(:field_application_date) %></th>
+                  <th width="1%">R</th>
+                  <th width="1%"></th>
+                </tr></thead>
+                <tbody id="tbody_desition_<%= random %>">
+                <% if params[:desition_topic].present? && params[:desition_topic]["#{random}"].present? && !params[:desition_topic]["#{random}"].nil?%>
+                    <%= render :partial => 'issues/desition_table_row', :locals => {:row => random, :desition_topics => nil }%>
+                <% end %>
+                </tbody>
+              </table>
+              </div>
+
+              <% i += 1 %>
+        <% end %>
+      <% else %>
+          <% @issue.topics.each do |topic| %>
+              <% random = rand(999999)%>
+              <div id="topic_<%= random %>" style="border-bottom: #FFCF00 solid 1px; margin-bottom: 5px;" class="topic_counter">
+                <p style="padding-left: 110px;">
+                  <label id="label_topics_<%= random %>}" style="display: block;float: left;">
+                    <%= l(:label_presented_by) %>
+                  </label>
+                  <%= text_field_tag "topics_presented_by[#{random}]", topic.presented_by, :class => 'topic_presented_by', :id => "topics_presented_by_#{random}", :size => 60 %>
+                </p>
+                <p style="padding-left: 110px;">
+                  <label id="label_topics_<%= random %>}" style="display: block;float: left;">
+                    <%= l(:label_detail) %>
+                  </label>
+                  <%= text_field_tag "topics_detail[#{random}]", topic.detail, :class => 'topic_detail', :id => "topics_detail_#{random}", :size => 60 %>
+                </p>
+                <p style="padding-left: 110px;">
+                  <label id="label_topics_<%= random %>}" style="display: block;float: left;">
+                    <%= l(:label_topic_without_number) + i.to_s %><span class="required"> *</span>
+                  </label>
+                  <%= text_area_tag "topics[#{random}]", topic.content, :rows => 5, :class => 'topic_subject', :id => "topics_#{random}" %>
+                  <%= hidden_field_tag "topics_ids[#{random}]", topic.id %>
+                  &nbsp;&nbsp;
+                  <%= link_to_function(image_tag('delete.png', :style => 'vertical-align: middle;', :title => l(:label_delete_topic)),
+                                       "del_topic('topic_#{random}');") %>
+                </p>
+                <table class="list">
+                  <thead><tr>
+                    <th width="35%">
+                      <%= link_to_function(image_tag('duplicate.png', :style => 'vertical-align: middle;', :title => l(:label_add_task_topic)),
+                                           "add_issue_topic('#{random}', '0');") %>
+                      &nbsp;&nbsp;
+                      <%= l(:field_task) %> <span class="required"> *</span>
+                    </th>
+                    <th><%= l(:field_assigned_to) %></th>
+                    <th><%= l(:field_project_priority) %><span class="required"> *</span></th>
+                    <th><%= l(:field_term_date) %></th>
+                    <th width="1%">R</th>
+                    <th width="1%"></th>
+                  </tr></thead>
+                  <tbody id="tbody_<%= random %>">
+                    <% unless topic.issue_topics.nil? %>
+                        <%= render :partial => 'issues/issue_table_row', :locals => {:issue_topics => topic.issue_topics, :row => random}%>
+                    <% end %>
+                  </tbody>
+                </table>
+
+                <table class="list">
+                  <thead><tr>
+                    <th width="35%">
+                      <%= link_to_function(image_tag('duplicate.png', :style => 'vertical-align: middle;', :title => l(:label_add_desition_topic)),
+                                           "add_issue_topic('#{random}', '0', 5);") %>
+                      &nbsp;&nbsp;
+                      <%= l(:field_desition) %> <span class="required"> *</span>
+                    </th>
+                    <th><%= l(:field_project_priority) %></th>
+                    <th><%= l(:field_application_date) %></th>
+                    <th width="1%">R</th>
+                    <th width="1%"></th>
+                  </tr></thead>
+                  <tbody id="tbody_desition_<%= random %>">
+                  <% unless topic.issue_topics.nil? %>
+                      <%= render :partial => 'issues/desition_table_row', :locals => {:desition_topics => topic.issue_topics, :row => random}%>
+                  <% end %>
+                  </tbody>
+                </table>
+
+              </div>
+              <% i += 1 %>
+          <% end %>
+      <% end %>
+
+    <%= hidden_field_tag(:topic_count, i, :id => "topic_count") %>
+    </div>
+  </fieldset>
+
+  <script>
+    $( "#issue_subject" ).change(function() {
+      get_committee_data();
+    });
+
+
+    function get_committee_data(){
+      $.ajax({
+        url: '<%= escape_javascript issue_committee_data_path() %>',
+        type: 'post',
+        data: {committee: $("#issue_subject").val()},
+        success: function(obj){
+          $("#committee_objectives").text((obj['objectives']?obj['objectives']:''));
+          $("#committee_kpi").text((obj['kpi']?obj['kpi']:''));
+          $("#committee_deliverable").text((obj['deliverable']?obj['deliverable']:''));
+        }
+      });
+    }
+  </script>
+<script>
+  function add_topic(){
+    count = parseInt($("#topic_count").val());
+    random = Math.floor((Math.random() * 999999) + 1);
+    del_link = '<%= link_to_function(image_tag('delete.png', :style => 'vertical-align: middle;', :title => l(:label_delete_topic)),
+                                                        "del_topic(_value_);") %>';
+    add_issues_link ='<%= link_to_function(image_tag('duplicate.png', :style => 'vertical-align: middle;', :title => l(:label_add_task_topic)),
+                                                        "add_issue_topic(_value_, '0');") %>';
+    add_desition_link ='<%= link_to_function(image_tag('duplicate.png', :style => 'vertical-align: middle;', :title => l(:label_add_desition_topic)),
+                                                        "add_issue_topic(_value_, '0', 5);") %>';
+    html = '';
+
+    html = html + '<div id="topic_' + random + '" style="border-bottom: #FFCF00 solid 1px; margin-bottom: 5px;" class="topic_counter">';
+    html = html + '<p style="padding-left: 110px;"><label id="label_topics_' + random + '" style="display: block;float: left;">';
+    html = html + '<%= l(:label_presented_by) %>';
+    html = html + '</label>';
+    html = html + '<input type="text" name="topics_presented_by['+random+']" id="topics_presented_by_'+random+'" class="topic_presented_by" size="60">';
+    html = html + '</p>';
+    html = html + '<p style="padding-left: 110px;"><label id="label_topics_' + random + '" style="display: block;float: left;">';
+    html = html + '<%= l(:label_detail) %>';
+    html = html + '</label>';
+    html = html + '<input type="text" name="topics_detail['+random+']" id="topics_detail_'+random+'" class="topic_detail" size="60">';
+    html = html + '</p>';
+    html = html + '<p style="padding-left: 110px;"><label class="topic_label"  id="label_topics_' + random + '" style="display: block;float: left;">';
+    html = html + '<%= l(:label_topic_without_number) %>' + count + '<span class="required"> *</span>';
+    html = html + '</label>';
+    html = html + '<textarea rows="5" name="topics['+random+']" class="topic_subject" id="topics_'+random+'"></textarea>';
+    html = html + '&nbsp;&nbsp;&nbsp;';
+    html = html + del_link.replace('_value_', '\'topic_' + random + '\'');
+    html = html + '</p>';
+    html = html + '<table class="list"><thead><tr>';
+
+    html = html + '<th width="35%">';
+    html = html + add_issues_link.replace('_value_', '\'' + random + '\'');
+    html = html + '&nbsp;&nbsp;';
+    html = html + '<%= l(:field_task) %> <span class="required"> *</span>';
+    html = html + '</th>';
+    html = html + '<th><%= l(:field_assigned_to) %></th>';
+    html = html + '<th><%= l(:field_project_priority) %> <span class="required"> *</span></th>';
+    html = html + '<th><%= l(:field_term_date) %></th>';
+    html = html + '<th width="1%">R</th>';
+    html = html + '<th width="1%"></th>';
+
+
+
+
+    html = html + '</tr></thead><tbody id="tbody_' + random + '"></tbody></table>';
+
+    html = html + '<table class="list"><thead><tr>';
+
+    html = html + '<th width="35%">';
+    html = html + add_desition_link.replace('_value_', '\'' + random + '\'');
+    html = html + '&nbsp;&nbsp;';
+    html = html + '<%= l(:field_desition) %> <span class="required"> *</span>';
+    html = html + '</th>';
+    html = html + '<th><%= l(:field_project_priority) %></th>';
+    html = html + '<th><%= l(:field_application_date) %></th>';
+    html = html + '<th width="1%">R</th>';
+    html = html + '<th width="1%"></th>';
+
+
+
+
+    html = html + '</tr></thead><tbody id="tbody_desition_' + random + '"></tbody></table>';
+
+
+    html = html + '</div>';
+    $("#topics").append(html);
+    $("#topic_count").val(count + 1);
+  }
+  function del_topic(topic){
+    if(confirm('<%= l(:text_are_you_sure) %>')){
+      $("#" + topic).remove();
+      count = 1;
+      $( ".topic_label" ).each(function( index ) {
+        label = '<%= l(:label_topic_without_number) %>' + count + '<span class="required"> *</span>';
+        $(this).empty();
+        $(this).append(label);
+        count = count + 1;
+      });
+      $("#topic_count").val(count);
+    }
+  }
+  function del_topic_issue(topic_issue){
+    if(confirm('<%= l(:text_are_you_sure) %>')){
+      $("#" + topic_issue).remove();
+    }
+  }
+
+  function add_issue_topic(row, issue_id, tracker_id){
+    if(tracker_id == undefined || tracker_id == '') tracker_id = <%= Setting.default_application_for_task.to_i%>
+    $.ajax({
+      url: '<%= escape_javascript issue_table_row_path(:format => 'js') %>',
+      type: 'post',
+      data: {row: row, issue_id: issue_id, project_id: <%= project.id %>, tracker_id: tracker_id}
+    });
+  }
+</script>
+<% end %>

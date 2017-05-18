@@ -1,0 +1,10 @@
+# Spanish strings go here for Rails i18n
+es:
+  label_work_time: "Reporte Horas"
+  project_module_work_time: "Reporte de Horas"
+  permission_work_time: "Ver Reporte de Horas Mensual"
+  permission_view_users_work_time: "Ver Reporte de Horas Mensual de Otros Usuarios"
+  label_holiday_help: "Día Festivo"
+  label_non_working_help: "Fin Semana"
+  label_today_help: "Fecha Actual"
+  button_edit: "Editar"

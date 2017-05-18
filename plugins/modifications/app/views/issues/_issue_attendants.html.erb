@@ -1,0 +1,58 @@
+<% project = @project || @issue.allowed_target_projects.first %>
+<fieldset>
+  <legend><%= l(:label_issue_attendants) %></legend>
+  <p class="roles-selection" id="p-roles-selection">
+    <% attendants = IssueAttendant.where(:issue_id => @issue.id) %>
+    <% if @issue.new_record? && ! params[:attendants] %>
+      <% project.users.map do |u| %>
+        <%= content_tag("label", check_box_tag('attendants[]', u.id, false, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
+      <% end %>
+    <% elsif params[:attendants] %>
+      <% project.users.map do |u| %>
+        <% next if params[:attendants].include?(u.id.to_s) %>
+        <%= content_tag("label", check_box_tag('attendants[]', u.id, false, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
+      <% end %>
+      <% params[:attendants].map do |u| %>
+        <% u = User.find(u) rescue next %>
+        <%= content_tag("label", check_box_tag('attendants[]', u.id, true, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
+      <% end %>
+    <% elsif attendants %>
+      <% attendants.map do |u| %>
+        <%= content_tag("label", check_box_tag('attendants[]', u.user.id, true, :id => "attendant_#{u.user.id}") + " #{u.user.name} #{u.invited ? "(#{l(:label_invited)})" : ''}", :style => "margin-left: 0px; text-align: left;") %>
+      <% end %>
+        <% project.users.map do |u| %>
+          <% next if attendants.map{|u| u.user_id.to_s}.include?(u.id.to_s) %>
+          <%= content_tag("label", check_box_tag('attendants[]', u.id, false, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
+        <% end %>
+    <% end %>
+  </p>
+  <br/>
+  <p>
+    <label>
+      <%= l(:label_inviteds)%>
+    </label>
+    <%= select_tag "inviteds", options_from_collection_for_select(User.active.where.not(:id => project.users.map{|u| u.id.to_s}).sorted.all, "id", "name") %>
+    <%= link_to_function(image_tag('add.png', :style => 'vertical-align: middle;', :title => l(:label_add_inviteds)),
+                         "add_inviteds();") %>
+  </p>
+  <% if @issue.safe_attribute?('others') && @issue.is_committee? %>
+    <p>
+      <label>
+        <%= l(:label_others)%>
+      </label>
+      <%= text_field_tag "issue[others]", (@issue.others && @issue.others != '' ? @issue.others : (params[:issue] && params[:issue][:others]) ? params[:issue][:others]: ''), :id => "issue_others", :size => 80, :maxlength => 255, :required => false %>
+    </p>
+  <% end %>
+</fieldset>
+<br/>
+<script>
+  function add_inviteds(){
+    uid = $("#inviteds").val();
+    uname = $("#inviteds :selected").text();
+    if ($("#attendant_" + uid).length){
+      return;
+    }
+    label = '<label style="margin-left: 0px; text-align: left;"><input type="checkbox" name="attendants[]" id="attendant_' + uid + '" value="' + uid + '" checked> ' + uname + ' (<%= l(:label_invited) %>)</label>';
+    $("#p-roles-selection").append(label);
+  }
+</script>

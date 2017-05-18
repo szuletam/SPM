@@ -1,0 +1,151 @@
+<%is_committee = (tracker_project == Setting.default_application_for_committee)%>
+<div class="splitcontent" id="attr_by_tracker">
+  <div class="splitcontentleft">
+    <p>
+      <label><%= l(:field_subject) %></label>
+      <%= mapping_select_tag @import, 'subject', :required => true %>
+    </p>
+    <p>
+      <label><%= l(:field_description) %></label>
+      <%= mapping_select_tag @import, 'description' %>
+    </p>
+
+    <% unless is_committee %>
+        <p>
+          <label><%= l(:field_priority) %></label>
+          <%= mapping_select_tag @import, 'priority' %>
+        </p>
+    <% end %>
+    <% unless is_committee %>
+        <p>
+          <label><%= l(:field_category) %></label>
+          <%= mapping_select_tag @import, 'category' %>
+          <% if User.current.allowed_to?(:manage_categories, @import.project) %>
+              <label class="block">
+                <%= check_box_tag 'import_settings[mapping][create_categories]', '1', @import.create_categories? %>
+                <%= l(:label_create_missing_values) %>
+              </label>
+          <% end %>
+        </p>
+    <% end %>
+    <% unless is_committee %>
+        <p>
+          <label><%= l(:field_estimated_hours) %></label>
+          <%= mapping_select_tag @import, 'estimated_hours' %>
+        </p>
+    <% end %>
+    <p>
+      <label><%= (is_committee ? l(:field_notes_by) : l(:field_assigned_to)) %></label>
+      <%= mapping_select_tag @import, 'assigned_to' %>
+    </p>
+
+    <% unless is_committee %>
+        <p>
+          <label><%= l(:field_fixed_version) %></label>
+          <%= mapping_select_tag @import, 'fixed_version' %>
+          <label class="block">
+            <%= check_box_tag 'import_settings[mapping][create_versions]', '1', @import.create_versions? %>
+            <%= l(:label_create_missing_values) %>
+          </label>
+        </p>
+    <% end %>
+
+    <% @custom_fields.each do |field| %>
+        <p>
+          <label><%= field.name %></label>
+          <%= mapping_select_tag @import, "cf_#{field.id}" %>
+        </p>
+    <% end if @custom_fields %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:label_topic) %></label>
+          <%= mapping_select_tag @import, 'topic_content' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_assigned_to) %></label>
+          <%= mapping_select_tag @import, 'topic_task_assigned_to' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_term_date) %></label>
+          <%= mapping_select_tag @import, 'topic_task_due_date' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_project_priority) %></label>
+          <%= mapping_select_tag @import, 'topic_task_project' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_priority) %></label>
+          <%= mapping_select_tag @import, 'topic_task_priority' %>
+        </p>
+    <% end %>
+  </div>
+
+  <div class="splitcontentright">
+    <p>
+      <label><%= l(:field_is_private) %></label>
+      <%= mapping_select_tag @import, 'is_private' %>
+    </p>
+    <% unless is_committee %>
+        <p>
+          <label><%= l(:field_parent_issue) %></label>
+          <%= mapping_select_tag @import, 'parent_issue_id' %>
+        </p>
+    <% end %>
+    <p>
+      <label><%= l(:field_start_date) %></label>
+      <%= mapping_select_tag @import, 'start_date' %>
+    </p>
+    <p>
+      <label><%= l(:field_due_date) %></label>
+      <%= mapping_select_tag @import, 'due_date' %>
+    </p>
+    <% unless is_committee %>
+        <p>
+          <label><%= l(:field_done_ratio) %></label>
+          <%= mapping_select_tag @import, 'done_ratio' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_task) %></label>
+          <%= mapping_select_tag @import, 'topic_task_subject' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_status) %></label>
+          <%= mapping_select_tag @import, 'topic_task_status' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_notes) %></label>
+          <%= mapping_select_tag @import, 'topic_task_notes' %>
+        </p>
+    <% end %>
+
+    <% if is_committee %>
+        <p>
+          <label><%= l(:field_task_type) %></label>
+          <%= mapping_select_tag @import, 'topic_task_type' %>
+        </p>
+    <% end %>
+
+  </div>
+</div>

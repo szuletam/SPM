@@ -1,0 +1,31 @@
+<%= form_tag({}) do -%>
+<%= hidden_field_tag 'back_url', url_for(params) %>
+<div class="autoscroll">
+<table class="list committees">
+<thead>
+  <tr>
+    <% @query.inline_columns.each do |column| %>
+      <%= column_header(column) %>
+    <% end %>
+   
+  </tr>
+</thead>
+<tbody>
+<% committees.each do |committee| -%>
+  <tr class="committee <%= cycle("odd", "even") %> hascontextmenu ">
+    <td class="checkbox hide-when-print" style="display:none;"><%= check_box_tag("ids[]", committee.id, false, :id => nil) %></td>
+    <%= raw @query.inline_columns.map {|column| 
+		if column.name == :name
+			"<td class=\"#{column.name}\" style=\"text-align: left\">&nbsp;&nbsp;&nbsp;#{column_content_committees(column, committee)}</td>"
+		else
+			"<td class=\"#{column.name}\">#{column_content_committees(column, committee)}</td>"
+		end
+	}.join %>
+  </tr>
+<% end -%>
+</tbody>
+</table>
+</div>
+<% end -%>
+<%= context_menu committees_context_menu_path %>
+

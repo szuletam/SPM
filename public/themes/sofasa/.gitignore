@@ -1,0 +1,16 @@
+### Node ###
+node_modules
+
+### Sass ###
+.sass-cache
+*.css.map
+
+### Intellij ###
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
+*.iml
+.idea/
+
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride

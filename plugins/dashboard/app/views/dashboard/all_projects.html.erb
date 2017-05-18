@@ -1,0 +1,38 @@
+<%= javascript_include_tag(:highcharts, :plugin => 'dashboard') %>
+<%= javascript_include_tag(:exporting, :plugin => 'dashboard') %>
+<%= javascript_include_tag("highcharts-more", :plugin => 'dashboard') %>
+<h2><%= l(:label_dashboard) %></h2>
+
+<script type="text/javascript" charset="utf-8">
+    $( "#legend_filters" ).ready(function() {
+        toggleFieldset("#legend_filters");
+    });
+</script>
+
+<%= form_tag({ :controller => 'dashboard', :action => 'all_projects'},
+             :method => :get, :id => 'query_form') do %>
+
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content" class="hide-when-print">
+      <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+        <legend id="legend_filters" onclick="toggleFieldset(this);">
+          <%= l(:label_filter_plural) %>
+        </legend>
+        <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+          <%= render :partial => 'dashboard/filters_dashboard', :locals => {:query => @query, :show_add_filters => true} %>
+        </div>
+      </fieldset>
+    </div>
+    <p class="buttons hide-when-print">
+
+      <%= link_to_function l(:button_apply), '$("#query_form").submit();', :class => 'icon icon-checked' %>
+      <%= link_to l(:button_clear), { :set_filter => 1 }, :class => 'icon icon-reload'  %>
+    </p>
+<% end %>
+
+<%= render :partial => "dashboard/charts" %>
+
+<br>
+<% if User.current.admin? %>
+    <%= render :partial => "dashboard/monthly_report" %>
+<% end %>

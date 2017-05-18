@@ -1,0 +1,100 @@
+<style>
+  .td_title{
+    font-weight: bold;
+    width: 20%;
+    text-align: left !important;
+  }
+</style>
+<%if @mrs %>
+  <table class="list">
+    <thead>
+    <tr>
+      <th>Dirección</th>
+      <th>Enero</th>
+      <th>Febrero</th>
+      <th>Marzo</th>
+      <th>Abril</th>
+      <th>Mayo</th>
+      <th>Junio</th>
+      <th>Julio</th>
+      <th>Agosto</th>
+      <th>Septiembre</th>
+      <th>Octubre</th>
+      <th>Noviembre</th>
+      <th>Diciembre</th>
+    </tr>
+    </thead>
+    <tbody>
+      <% totales = [] %>
+      <% @mrs.each do |direction, mr| %>
+        <tr>
+          <td class="td_title"><%= direction.name %></td>
+          <% mr_count = 0 %>
+          <% for i in 1..12 %>
+            <% if (!mr[mr_count] && mr[mr_count] != 1) || i != mr[mr_count].report_date.month %>
+              <td></td>
+              <% next %>
+            <% end %>
+              <td><%= mr[mr_count].created %></td>
+              <% totales[i] = {'created' => 0, 'closed' => 0, 'retarded' => 0} unless totales[i] %>
+              <% totales[i]['created'] += mr[mr_count].created if mr[mr_count].created %>
+              <% totales[i]['closed'] += mr[mr_count].closed if mr[mr_count].closed %>
+              <% totales[i]['retarded'] += mr[mr_count].retarded if mr[mr_count].retarded %>
+              <% mr_count += 1 %>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <table class="list">
+    <thead>
+      <tr>
+        <th>Totales</th>
+        <th>Enero</th>
+        <th>Febrero</th>
+        <th>Marzo</th>
+        <th>Abril</th>
+        <th>Mayo</th>
+        <th>Junio</th>
+        <th>Julio</th>
+        <th>Agosto</th>
+        <th>Septiembre</th>
+        <th>Octubre</th>
+        <th>Noviembre</th>
+        <th>Diciembre</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td_title">Total temas inscritos</td>
+        <% for i in 1..12 %>
+            <td><%= totales[i]['created'] if totales[i] %></td>
+        <% end %>
+      </tr>
+      <tr>
+        <td class="td_title">Total temas cerrados</td>
+        <% for i in 1..12 %>
+            <td><%= totales[i]['closed'] if totales[i] %></td>
+        <% end %>
+      </tr>
+      <tr>
+        <td class="td_title">Total temas retrasados</td>
+        <% for i in 1..12 %>
+            <td><%= totales[i]['retarded'] if totales[i] %></td>
+        <% end %>
+      </tr>
+      <tr>
+        <td class="td_title">% Avance</td>
+        <% for i in 1..12 %>
+            <td><%= (100*(totales[i]['closed'].to_f)/(totales[i]['created'].to_f)).round(2) if totales[i] %></td>
+        <% end %>
+      </tr>
+      <tr>
+        <td class="td_title">% Retraso</td>
+        <% for i in 1..12 %>
+            <td><%= (100*(totales[i]['retarded'].to_f)/(totales[i]['created'].to_f)).round(2) if totales[i] %></td>
+        <% end %>
+      </tr>
+    </tbody>
+  </table>
+<% end %>

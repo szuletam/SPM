@@ -1,0 +1,40 @@
+<table class="list work-time">
+  <thead>
+	<%= render_month_th %>
+	<tr>
+	  <!--<th class="project"><%#= l(:field_project) %></th>-->
+ 	  <th class="issue"><%= l(:label_day_plural).capitalize %></th>
+	  <%= render_days_th %>
+	</tr>
+  </thead>
+  <tbody>
+	<% @issues.each do |issue|%>
+	  <% unless @draw_projects.include?(issue.project_id) %>
+		<tr>
+		  <td class="project td-project">
+		    <%= @projects[issue.project_id] ? link_to_project(@projects[issue.project_id]) : raw("&nbsp;") %>
+	      </td>
+		  <%= render_project_hours_td((@projects[issue.project_id] ?  @projects[issue.project_id] : nil)) %>
+		</tr>
+		<% @draw_projects << issue.project_id %>
+	  <% end %>
+	  <tr>
+	    <!--<td class="project">
+		  <%#= @projects[issue.project_id] ? link_to_project(@projects[issue.project_id]) : raw("&nbsp;") %>
+	    </td>-->
+	    <td class="issue">
+		  <div style="margin-left: 10px;" class="tooltip">
+			<%= work_time_issue_link(issue) %>
+			<!--<span class="tip"><%#= render_issue_tooltip issue %></span>-->
+			<% if @work_time_issues.include?(issue.id) %>
+			  <%= render_remove_work_time(issue.id) %>
+		    <% end %>
+		  </div>
+	    </td>
+		<%= render_hours_td(issue) %>
+	  </tr>
+	<% end %>
+	<tr><%= render_total_hours_tr %></tr>
+  </tbody>
+</table>
+<%= javascript_include_tag :work_time, :plugin => 'work_time' %>

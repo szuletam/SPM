@@ -1,0 +1,40 @@
+$('#ajax-modal').html('<%= escape_javascript(render :partial => 'principal_memberships/new_modal') %>');
+showModal('ajax-modal', '700px');
+
+$('.projects-selection').on('click', 'input[type=checkbox]', function(e){
+    var prevent = false;
+    if (!$(this).is(':checked')) {
+        if ($(this).closest('li').find('ul input[type=checkbox]:not(:checked):not(.member)').length > 0) {
+            $(this).closest('li').find('ul input[type=checkbox]:not(:checked):not(.member)').prop('checked', true);
+            e.preventDefault();
+            prevent = true;
+        } else {
+            $(this).closest('li').find('ul input[type=checkbox]:checked:not(.member)').prop('checked', false);
+        }
+    }
+
+    validate_inherents(prevent);
+
+});
+
+function validate_inherents(prevent){
+    $('.projects-selection div.inherit input[type=checkbox]:not(.member)').each(function () {
+        var parent = $(this).closest('ul').closest('li').find('input[type=checkbox]').first();
+
+        if(!prevent){
+            if(parent.prop('checked')){
+                $(this).prop('disabled', true);
+            }else{
+                $(this).prop('disabled', false);
+            }
+
+            if($(this).prop('disabled')){
+                $(this).prop('checked', true);
+            }
+        }else{
+            $(this).prop('disabled', $(this).is(':checked'));
+        }
+
+
+    });
+}

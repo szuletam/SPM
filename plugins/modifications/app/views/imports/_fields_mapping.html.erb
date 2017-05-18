@@ -1,0 +1,57 @@
+<div id="import_attr">
+  <div class="splitcontent">
+    <div class="splitcontentleft">
+      <p>
+        <label><%= l(:label_project) %></label>
+        <%= select_tag 'import_settings[mapping][project_id]',
+                       options_for_select(project_tree_options_for_select(@import.allowed_target_projects, :selected => @import.project)),
+                       :id => 'issue_project_id' %>
+      </p>
+    </div>
+    <div class="splitcontentright">
+      <p>
+        <label><%= l(:label_tracker) %></label>
+        <%= select_tag 'import_settings[mapping][tracker_id]',
+                       options_for_select(@import.allowed_target_trackers.sorted.map {|t| [t.name, t.id]}, @import.tracker.try(:id)),
+                       :id => 'issue_tracker_id' %>
+      </p>
+    </div>
+  </div>
+  <script>
+    $( "#issue_project_id" ).change(function() {
+      get_trackers();
+    });
+    $( "#issue_tracker_id" ).change(function() {
+      change_attributes();
+    });
+    function get_trackers(){
+      $.ajax({
+        url: '<%= issue_trackers_for_import_path %>',
+        type: 'post',
+        data: {project_id: $("#issue_project_id").val(), id: '<%= params[:id] %>'},
+        success: function(obj){
+          $("#issue_tracker_id").empty();
+          if(obj != '' || obj != undefined)
+            $("#issue_tracker_id").append(obj);
+          change_attributes();
+        }
+      });
+    }
+
+    function change_attributes() {
+      $.ajax({
+        url: '<%= issue_attributes_for_import_path %>',
+        type: 'post',
+        data: {tracker_project: $("#issue_tracker_id").val(), id: '<%= params[:id] %>'},
+        success: function(obj){
+          if(obj != '' || obj != undefined){
+            $('#attr_by_tracker').remove();
+            $("#import_attr").append(obj);
+          }
+        }
+      });
+    }
+  </script>
+  <%tracker_project = @import.tracker.try(:id) || @import.allowed_target_trackers.sorted.first.id %>
+  <%= render :partial => 'imports/attributes', :locals => {:tracker_project => tracker_project} %>
+</div>

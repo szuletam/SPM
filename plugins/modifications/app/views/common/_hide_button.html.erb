@@ -1,0 +1,8 @@
+<%= stylesheet_link_tag 'sidebar_hide.css', :plugin => 'modifications' %>
+<%= javascript_include_tag 'sidebar_hide.js', :plugin => 'modifications' %>
+<div style="clear:both;"></div>
+<% if sidebar_content? %>
+    <div id="sidebarHandler">
+        <div id="hideSidebarButton" onclick="hideSideBar()" />
+    </div>
+<% end %>

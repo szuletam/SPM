@@ -1,0 +1,40 @@
+$("#<%= div_id %>").empty();
+$('#<%= div_id %>').highcharts({
+  chart: {
+    plotBackgroundColor: null,
+    plotBorderWidth: null,
+    plotShadow: false,
+    type: 'pie'
+  },
+  exporting: {
+    filename: '<%= filename %>'
+  },
+  title: {
+    text: '<%= title %>'
+  },
+  tooltip: {
+    pointFormat: '{series.name}: <b>{point.y:.1f}</b>'
+  },
+  plotOptions: {
+    pie: {
+      allowPointSelect: true,
+      cursor: 'pointer',
+      dataLabels: {
+        enabled: true,
+        format: '<b>{point.percentage:.1f}%</b>',
+      },
+      showInLegend: true
+    }
+  },
+  series: [{
+    name: '<%= serie_name %>',
+    colorByPoint: true,
+    innerSize: '50%',
+    data: [
+      <% data.each do |key,value| %>
+      {name: '<%= raw key %>', y: <%= raw value %>},
+      <% end %>
+    ]
+  }]
+});
+

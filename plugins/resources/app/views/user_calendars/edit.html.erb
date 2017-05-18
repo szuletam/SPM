@@ -1,0 +1,15 @@
+<div class="contextual">
+<%= delete_link user_calendar_path(@user_calendar) %>
+</div>
+
+<%= title [l(:label_user_calendar_plural), user_calendars_path], @user_calendar.name %>
+
+<%= labelled_form_for @user_calendar, :url => user_calendar_path(@user_calendar), :method => :put do |f| %>
+  <%= render :partial => 'form', :locals => { :f => f } %>
+  <p>
+    <%= submit_tag l(:button_update) %>
+  </p>
+<% end %>
+
+<% html_title l(:label_user_calendar) %>
+

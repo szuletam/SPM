@@ -1,0 +1,121 @@
+<% content_for :header_tags do %>
+    <%#= auto_discovery_link_tag(:atom, {:action => 'index', :format => 'atom', :key => User.current.rss_key}) %>
+<% end %>
+
+<div class="contextual">
+	
+	
+    <%= link_to(l(:label_project_new), {:controller => 'projects', :action => 'new'}, :class => 'icon icon-add') + ' | ' if User.current.allowed_to?(:add_project, nil, :global => true) %>
+    <%= link_to(l(:label_project_templates), {:controller => 'project_templates', :action => 'index'}, :class => 'icon icon-project-templates') + ' | ' if User.current.allowed_to?(:add_project, nil, :global => true) %>
+	<%= link_to(l(:label_issue_view_all), issues_path, :class => 'icon icon-time-entry-list') + ' |' if User.current.allowed_to?(:view_issues, nil, :global => true) %>
+    <%#= link_to(l(:label_overall_spent_time), time_entries_path, :class => 'icon icon-total-time') + ' |' if User.current.allowed_to?(:view_time_entries, nil, :global => true) %>
+	<%= link_to l(:label_overall_activity),
+                { :controller => 'activities', :action => 'index',
+                  :id => nil }, :class => 'icon icon-all-activity' %>
+	
+	<% if !@query.new_record? && @query.editable_by?(User.current) %>
+		<%= raw " | " + link_to(l(:button_edit), {:controller => :project_queries, :action => :edit, :id => @query.id}, :class => 'icon icon-edit') %>
+		<%= raw " | " + delete_link({:controller => :project_queries, :action => :destroy, :id => @query.id}) %>
+	<% end %>
+</div>
+
+<h2><%= @query.new_record? ? l(:label_project_plural) : h(@query.name) %></h2>
+
+<%= form_tag({ :controller => 'projects', :action => 'index'},
+            :method => :get, :id => 'query_form') do %>
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content" class="hide-when-print">
+    <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
+      <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+        <%= render :partial => 'project_queries/filters', :locals => {:query => @query} %>
+      </div>
+    </fieldset>
+    <fieldset class="collapsible collapsed">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_options) %></legend>
+      <div style="display: none;">
+        <table>
+          <tr>
+            <td><%= l(:field_column_names) %></td>
+            <td><%= render_query_columns_selection(@query) %></td>
+          </tr>
+          <!--<tr>
+            <td><label for='group_by'><%= l(:field_group_by) %></label></td>
+            <td><%= select_tag('group_by',
+                               options_for_select(
+                                 [[]] + @query.groupable_columns.collect {|c| [c.caption, c.name.to_s]},
+                                 @query.group_by)
+                       ) %></td>
+          </tr>-->
+          <tr>
+            <!--<td><%= l(:button_show) %></td>
+            <td><%= available_block_columns_tags(@query) %></td>-->
+          </tr>
+        </table>
+      </div>
+    </fieldset>
+    </div>
+    <p class="buttons hide-when-print">
+
+    <%= link_to_function l(:button_apply), '$("#query_form").submit();', :class => 'icon icon-checked' %>
+    <%= link_to l(:button_clear), { :set_filter => 1, :project_id => @project }, :class => 'icon icon-reload'  %>
+      <% allowed_to_save = false %>
+      <% if @project %>
+        <% allowed_to_save = User.current.allowed_to?(:save_queries, @project, :global => true) %>
+      <% else %>
+        <% Project.visible.each do |project| %>
+          <% if User.current.allowed_to?(:save_queries, project, :global => true) %>
+            <% allowed_to_save = true %>
+          <% end %>
+        <% end %>
+      <% end %>
+      <% if allowed_to_save %>
+        <%= link_to_function l(:button_save),
+                             "$('#query_form').attr('action', '#{ @project ? new_project_query_path(@project) : url_for({:controller => :project_queries, :action => :new}) }').submit()",
+                             :class => 'icon icon-save' %>
+    <%  end %>
+    </p>
+<% end %>
+
+
+
+<%= error_messages_for 'query' %>
+<% if @query.valid? %>
+<% if @projects.empty? %>
+<p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+<%= render :partial => 'projects/list', :locals => {:projects => @projects, :query => @query} %>
+<span class="pagination"><%= pagination_links_full @project_pages, @project_count %></span>
+<% end %>
+
+<% other_formats_links do |f| %>
+  <%= f.link_to 'CSV', :url => params, :onclick => "showModal('csv-export-options', '330px'); return false;" %>
+<% end %>
+
+<div id="csv-export-options" style="display:none;">
+  <h3 class="title"><%= l(:label_export_options, :export_format => 'CSV') %></h3>
+  <%= form_tag(params.merge({:format => 'csv',:page=>nil}), :method => :get, :id => 'csv-export-form') do %>
+  <p>
+    <label><%= radio_button_tag 'columns', '', true %> <%= l(:description_selected_columns) %></label><br />
+    <label><%= radio_button_tag 'columns', 'all' %> <%= l(:description_all_columns) %></label>
+  </p>
+  <p>
+    <label><%= check_box_tag 'description', '1', @query.has_column?(:description) %> <%= l(:field_description) %></label><br/>
+  </p>
+  <p class="buttons">
+    <%= submit_tag l(:button_export), :name => nil, :onclick => "hideModal(this);" %>
+    <%= submit_tag l(:button_cancel), :name => nil, :onclick => "hideModal(this);", :type => 'button' %>
+  </p>
+  <% end %>
+</div>
+
+
+<% end %>
+
+<%= call_hook(:view_issues_index_bottom, { :issues => @issues, :project => @project, :query => @query }) %>
+
+<% content_for :sidebar do %>
+    <%= render :partial => 'sidebar' %>
+<% end %>
+
+<% html_title(l(:label_project_plural)) -%>

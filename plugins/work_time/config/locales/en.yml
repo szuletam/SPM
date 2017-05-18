@@ -1,0 +1,9 @@
+# English strings go here for Rails i18n
+en:
+  label_holiday_help: "Holiday"
+  label_non_working_help: "Non working day"
+  label_today_help: "Today"
+  project_module_work_time: "Time Tracking"
+  label_work_time: Time Tracking
+  permission_work_time: "View Report Hours calendar"
+  permission_view_users_work_time: "View users report hours calendar"

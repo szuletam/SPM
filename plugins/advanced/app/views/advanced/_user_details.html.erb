@@ -1,0 +1,78 @@
+<h3><%=@report_title2%></h3>
+
+
+<% total_issues2 = aggregate(data2, {})%>
+<% total_column2 = []%>
+
+<% for status in @statuses %>
+    <% total_column2[status.id] = aggregate data2, {"status_id" => status.id } %>
+<% end %>
+
+
+<% if @statuses.empty? or rows2.empty? or data2.empty? %>
+    <p><i><%=l(:label_no_data)%></i></p>
+<% else %>
+<table class="list issue-report">
+<thead><tr>
+<th width="20%"></th>
+<% for status in @statuses %>
+  <%if total_column2[status.id] > 0 %>
+    <th><%= link_to status.name, project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => [status.id.to_s] },"assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} }}))%></th>
+  <% end %>
+<% end %>
+<th><strong><%= link_to l(:label_total), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => @statuses.map{|status| status.id.to_s} },"assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} }}))%></strong></th>
+<th><strong><%= link_to l(:label_delayed), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "o", :values => @statuses.map{|status| status.id.to_s} },"assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s(:db)] }}))%></strong></th>
+<th><strong><%=l(:label_weight)%></strong></th>
+<th><strong><%=l(:label_advanced_porcent)%></strong></th>
+<th><strong><%=l(:label_delayed_porcent)%></strong></th>
+</tr></thead>
+<tbody>
+<% for row in rows2 %>
+<% total_row2 = aggregate(data2, { field_name => row.id }) %>
+<% total_delayed_row2 = aggregate(data_delay2, { field_name => row.id }) %>
+<% total_closed2 = aggregate(data2, { field_name => row.id, "closed" => 1 }) %>
+<% weight2 = (total_row2.to_f/total_issues2*100).round(2) rescue '-' %>
+<% advanced_porcent2 = (total_closed2.to_f/total_row2*100).round(2) rescue '-' %>
+<% delayed_porcent2 = (total_delayed_row2.to_f/total_row2*100).round(2) rescue '-' %>
+
+<tr class="<%= cycle("odd", "even") %>">
+  <td class="name" width="20%"><%= link_to row.name, project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => @statuses.map{|status| status.id.to_s} },"assigned_to_id" => {:operator => "=", :values => [row.id] }}))%></td>
+  <% for status in @statuses %>
+      <%if total_column2[status.id] > 0 %>
+        <td><%= link_to (aggregate data2, { field_name => row.id, "status_id" => status.id }), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => [status.id] },"assigned_to_id" => {:operator => "=", :values => [row.id] }}))%></td>
+    <% end %>
+  <% end %>
+  <td><%= link_to (aggregate data2, { field_name => row.id }), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => @statuses.map{|status| status.id.to_s} },"assigned_to_id" => {:operator => "=", :values => [row.id] }}))%></td>
+  <td><%= link_to (aggregate data_delay2, { field_name => row.id }), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => @statuses.select{|status| !status.is_closed?}.map{|status| status.id.to_s} },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s(:db)] },"assigned_to_id" => {:operator => "=", :values => [row.id] }}))%></td>
+  <td style="text-align: right;"><%= ((weight2.is_a? Numeric) && !weight2.to_f.nan? && weight2 >= 0 ? weight2 : '-') rescue '-'%></td>
+  <td style="text-align: right;" class="advanced_porcent <%= get_color_class(advanced_porcent2) %>"><%= ((advanced_porcent2.is_a? Numeric) && !advanced_porcent2.to_f.nan? && advanced_porcent2 >= 0 ? advanced_porcent2 : '-') rescue '-' %></td>
+  <td style="text-align: right;" class="advanced_porcent <%= get_color_class(delayed_porcent2, true) %>"><%= ((delayed_porcent2.is_a? Numeric) && !delayed_porcent2.to_f.nan? && delayed_porcent2 >= 0 ? delayed_porcent2 : '-') rescue '-' %></td>
+</tr>
+<% end %>
+<tr>
+  <%total_closed2 = aggregate data2, {  "closed" => 1 }%>
+  <% total_row2 = aggregate data2, {} %>
+  <% total_row_delay2 = aggregate data_delay2, {} %>
+  <% advanced_porcent2 = (total_closed2.to_f/total_row2*100).round(2) rescue '-' %>
+  <% delayed_porcent2 = (total_row_delay2.to_f/total_row2*100).round(2) rescue '-' %>
+
+  <td class="name"><strong><%= link_to l(:label_total), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => @statuses.map{|status| status.id.to_s} },"assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} }}))%></strong></td>
+  <% for status in @statuses %>
+    <%if total_column2[status.id] > 0 %>
+      <td><strong><%= link_to (total_column2[status.id]), project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => [status.id.to_s] },"assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} }}))%></strong></td>
+    <% end %>
+  <% end %>
+  <td><strong><%= link_to total_row2, project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} }}))%></strong></td>
+  <td><strong><%= link_to total_row_delay2, project_issues_path(@project, filters_for_url({"project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}, "status_id" => {:operator => "=", :values => @statuses.select{|status| !status.is_closed?}.map{|status| status.id.to_s} },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s(:db)] },"assigned_to_id" => {:operator => "=", :values => rows2.map{|row| row.id.to_s} }}))%></strong></td>
+  <td style="text-align: right"><strong>100</strong></td>
+  <td style="text-align: right" class="advanced_porcent <%= get_color_class(advanced_porcent2) %>"><strong><%= ((advanced_porcent2.is_a? Numeric) && !advanced_porcent2.to_f.nan? && advanced_porcent2 >= 0 ? advanced_porcent2 : '-') rescue '-' %></strong></td>
+  <td style="text-align: right" class="advanced_porcent <%= get_color_class(delayed_porcent2, true) %>"><strong><%= ((delayed_porcent2.is_a? Numeric) && !delayed_porcent2.to_f.nan? && delayed_porcent2 >= 0 ? delayed_porcent2 : '-') rescue '-' %></strong></td>
+
+</tr>
+</tbody>
+</table>
+<% end
+   reset_cycle %>
+
+<br />
+<%= link_to l(:button_back), project_issues_path(@project, filters_for_url) %>

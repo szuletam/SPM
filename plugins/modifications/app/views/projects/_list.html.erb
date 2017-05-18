@@ -1,0 +1,86 @@
+<% curr_parents = [] %>
+<%= form_tag({}) do -%>
+<%= hidden_field_tag 'back_url', url_for(params) %>
+<div class="autoscroll">
+<table class="list projects">
+<thead>
+  <tr>
+    <% @query.inline_columns.each do |column| %>
+      <%= column_header(column) %>
+    <% end %>
+   
+  </tr>
+</thead>
+<tbody>
+<% parents = [] %>
+<% hiddens = [] %>
+
+<% projects.each do |project| -%>
+  <% if project.parent.nil? %>
+  
+    <% parents << project.id %>
+	
+  <% elsif ! parents.include?(project.parent.id) && project.ancestors.size <= 0 && @query.is_tree %>
+	<%= render :partial => "parent", :locals => {:project => project.parent}%>
+	<% parents << project.parent.id %>
+
+  <% end %>
+  <% if project.curr_ancestors.size > 0 && @query.is_tree %>
+    <% hiddens << project.id %> 
+  <% end %>
+  <tr class="project <%= cycle("odd", "even") %> hascontextmenu <%= project.css_classes %> <%= project.tree_class %> <%= project.curr_ancestors.size > 0 && @query.is_tree ? "idnt idnt-#{project.curr_ancestors.size}" : nil %>" 
+	style="<%= (hiddens.include?(project.parent ? project.parent_id : 0)) ? "display: none;" : nil %>">
+    <td class="checkbox hide-when-print" style="display:none;"><%= check_box_tag("id", project.id, false, :id => nil) %></td>
+    <%= raw @query.inline_columns.map {|column| 
+		if project.descendants.size > 0
+			if column.name.to_s == 'name' && @query.is_tree
+			  curr_parents << project.id
+				"<td class=\"#{column.css_classes}\" style=\"padding-left: #{(project.curr_ancestors.size > 0 && @query.is_tree && hiddens ? project.curr_ancestors.size + 0.5 : 0.5)}em;\">#{content_tag(:span, '&nbsp;'.html_safe, :class => 'toggle-multiselect hidde_tr', "data-id".to_sym => project.id, "data-display".to_sym => 0)}&nbsp;#{column_content(column, project)}</td>"
+			elsif column.name.to_s == 'name'
+				"<td style='padding-left: 0em;' class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+			else
+			  "<td class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+			end
+		elsif project.parent.nil?
+			column.name.to_s == 'name' ? "<td class=\"#{column.css_classes}\" style=\"padding-left: #{(project.curr_ancestors.size > 0 && @query.is_tree ? project.curr_ancestors.size + 0.5 : 0.5)}em;\">#{column_content(column, project)}</td>" : "<td class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+		else
+			column.name.to_s == 'name' ? "<td class=\"#{column.css_classes}\" style=\"padding-left: #{(project.curr_ancestors.size > 0 && @query.is_tree && curr_parents.include?(project.parent.id) ? project.curr_ancestors.size + 0.5 : 0.5)}em;\"><span>#{column_content(column, project)}</span></td>" : "<td class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+		end
+	}.join %>
+  </tr>
+<% end -%>
+</tbody>
+</table>
+</div>
+<% end -%>
+<script>
+$( document ).ready(function() {
+    parents = <%= curr_parents.to_json %>;
+	for(i = 0; i < parents.length; i++){
+	  $(".project-" + parents[i]).css("display", "none");
+	}
+});
+</script>
+<%= context_menu projects_context_menu_path %>
+<% content_for :header_tags do %>
+
+<style>
+.idnt {
+	
+}
+</style>
+<script>
+$(document).on('click','.hidde_tr',function(e){		
+	if($(this).data("display") == "0" || $(this).data("display") == "0"){
+	  $(".project-" + $(this).data("id")).css("display", "table-row");
+	  $(".project-" + $(this).data("id")).data("display", 1);
+	  $(this).data("display", 1);
+	}
+	else{
+	  $(".project-" + $(this).data("id")).css("display", "none");
+	  $(".project-" + $(this).data("id")).data("display", 0);
+	  $(this).data("display", 0);
+	}
+});
+</script>
+<% end %>

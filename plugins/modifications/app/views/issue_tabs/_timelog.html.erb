@@ -1,0 +1,32 @@
+<% if @time_entries.count > 0 %>
+  <div id="issue_timelog">
+    <% @time_entries.each do |entry| %>
+      <div id="timelog-<%= entry.id %>" class="<%= cycle('odd', 'even') %>">
+          <% if entry.editable_by?(User.current) -%>
+            <div>
+              
+            </div>
+          <% end %>
+        <div>
+			  <%= link_to '',
+                          {controller: 'timelog', action: 'edit', id: entry, project_id: nil},
+                          title: l(:button_edit),
+                          class: 'no_line icon icon-edit block-left-link' %>
+              <%= link_to '',
+                          {controller: 'timelog', action: 'destroy', id: entry, project_id: nil, back_url: issue_path(@issue, tab: :timelog)},
+                          confirm: l(:text_are_you_sure),
+                          method: :delete,
+                          title: l(:button_delete),
+                          class: 'no_line icon icon-del block-left-link' %>
+          <b>
+            <%= format_date entry.spent_on %>:
+            <%= l_hours entry.hours %></b> &mdash; <%= h(entry.activity.try(:name) || 'none') %>.
+            <%= authoring entry.created_on, entry.user %>: <%= h entry.comments %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+<p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>
+<br/>

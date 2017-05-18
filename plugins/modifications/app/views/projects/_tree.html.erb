@@ -1,0 +1,56 @@
+<%= stylesheet_link_tag "jstree/themes/default/style.min.css" %>
+<style>
+  div.cuerpo_modal{
+    overflow-y: auto !important;
+    max-height: 370px;
+  }
+  div.modal{
+    height: auto;
+    top: 100px !important;
+  }
+</style>
+<div id="TreeModal" style="display:none;">
+  <h3 class="title"><%= l(:label_jump_to_a_project) %></h3>
+  <!-- 3 setup a container element -->
+  <div id="jstree" class="cuerpo_modal">
+    <!-- in this example the tree is populated from inline HTML -->
+    <ul>
+      <% Project.roots.active.each do |project|%>
+          <%= project_tree_node(project).html_safe %>
+      <% end %>
+    </ul>
+  </div>
+</div>
+
+<%= button_tag l(:label_jump_to_a_project), :onclick => "showModal('TreeModal', '500px'); return false;", :style => 'width: 250px; text-align: left;' %>
+
+<script>
+    $(function () {
+        // 6 create an instance when the DOM is ready
+        $('#jstree').jstree();
+
+        $.each($('li[role="treeitem"][data-visible="true"]').find('a i'), function () {
+            $(this).removeClass('jstree-themeicon');//se cambia el icono de carpeta a el icono de proyectos
+            $(this).addClass('icon-projects');//se cambia el icono de carpeta a el icono de proyectos
+        });
+
+        // 7 bind to events triggered on the tree
+        $('#jstree').on("changed.jstree", function (e, data) {
+            var selected = data.selected[0];
+            if(selected != undefined && selected != '' && $('#'+selected).data('visible')){
+                var project_id = selected.replace('node_', '');
+                var url = '<%= projects_path %>/' + project_id;
+                window.location.replace(url);
+            }
+        });
+
+        //Add para cerrar modal a dar clic fuera de la ventana
+        $('body').click(function (event)
+        {
+            if(!$(event.target).closest('.ui-dialog').length && !$(event.target).is('.ui-dialog') && $('.ui-dialog').is(':visible') && !$(event.target).closest('#quick-search').length && !$(event.target).is('#quick-search') && !$(event.target).closest('#recurrent_issue').length && !$(event.target).is('#recurrent_issue') && !$(event.target).closest('.csv').length && !$(event.target).is('.csv') && !$(event.target).closest('.topic_counter').length && !$(event.target).is('.topic_counter')) {
+                $('.ui-dialog-content').dialog('close');
+            }
+        });
+
+    });
+</script>

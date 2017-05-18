@@ -1,0 +1,20 @@
+<h2><%= l(:project_module_evm) %></h2>
+<% html_title(l(:project_module_evm)) %>
+
+<!---Load header javascript --->
+<%= render "ratios/head_js" %>
+
+<!--- Load custom css --->
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'ratios', :plugin => 'evm' %>
+<% end %>
+
+<%= render "ratios/head_js" %>
+
+<% @evms.each do |evm| %>
+    <%= render :partial=>"ratios/bottom_js", :locals => {:evm => evm} %>
+    <% other_formats_links do |f| %>
+        <% csv_params = evm[:version].present? ? {"version" => evm[:version].id} : {} %>
+        <%= f.link_to 'CSV', :url => csv_params %>
+    <% end %>
+<% end %>

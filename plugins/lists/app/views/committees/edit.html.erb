@@ -1,0 +1,25 @@
+<div class="contextual">
+<%= delete_link committee_path(@committee) %>
+</div>
+
+<%= title [l(:label_committees), committees_path], @committee.name %>
+
+<%= labelled_form_for @committee, :url => committee_path(@committee), :method => :put do |f| %>
+  <%= render :partial => 'form', :locals => { :f => f } %>
+  <p>
+    <%= submit_tag l(:button_update) %>
+		| <%= link_to l(:button_cancel), committees_path %>
+  </p>
+<% end %>
+
+<% content_for :sidebar do %>
+	<h3><%= l(:label_administration) %></h3>
+	<div id="admin-menu">
+		<ul>
+			<%= render_menu :admin_menu %>
+		</ul>
+	</div>
+<% end %>
+
+<% html_title l(:label_committees) %>
+

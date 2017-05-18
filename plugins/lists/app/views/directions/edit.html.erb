@@ -1,0 +1,25 @@
+<div class="contextual">
+<%= delete_link direction_path(@direction) %>
+</div>
+
+<%= title [l(:label_directions), directions_path], @direction.name %>
+
+<%= labelled_form_for @direction, :url => direction_path(@direction), :method => :put do |f| %>
+  <%= render :partial => 'form', :locals => { :f => f } %>
+  <p>
+    <%= submit_tag l(:button_update) %>
+		| <%= link_to l(:button_cancel), directions_path %>
+  </p>
+<% end %>
+
+<% content_for :sidebar do %>
+	<h3><%= l(:label_administration) %></h3>
+	<div id="admin-menu">
+		<ul>
+			<%= render_menu :admin_menu %>
+		</ul>
+	</div>
+<% end %>
+
+<% html_title l(:label_directions) %>
+

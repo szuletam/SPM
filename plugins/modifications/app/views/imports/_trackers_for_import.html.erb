@@ -1,0 +1,2 @@
+<% @import = IssueImport.where(:user_id => User.current.id, :filename => id).first %>
+<%= options_for_select(@import.allowed_target_trackers_for_project(project_id).sorted.map {|t| [t.name, t.id]}, @import.tracker.try(:id)) %>

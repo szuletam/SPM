@@ -1,0 +1,11 @@
+<p>
+<%= l(:mail_body_whining, :count => @issues.size, :days => @days) %>
+</p>
+
+<ul>
+<% @issues.each do |issue| %>
+    <li><%=h issue.project%> - <%=link_to("#{issue.tracker} ##{issue.spmid}", :controller => 'issues', :action => 'show', :id => issue, :only_path => false)%>: <%=h "#{issue.subject} con Fecha fin/Plazo #{issue.due_date}" %></li>
+<% end %>
+</ul>
+
+<p><%= link_to l(:label_issue_view_all), @issues_url %></p>

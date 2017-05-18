@@ -1,0 +1,80 @@
+<% roles = Role.find_all_givable
+   members = @project.memberships.active.includes(:member_roles, :roles, :principal).to_a.sort %>
+
+<p><%= link_to l(:label_member_new), new_project_membership_path(@project), :remote => true, :class => "icon icon-add" %></p>
+
+<% if Setting.default_calendar.to_i == 0 %>
+  <p class="nodata"><%= l(:error_no_default_calendar_selected) %></p>
+<% end %>
+<% if UserCalendar.all.size == 0 %>
+  <p class="nodata"><%= l(:error_user_calendars_no_exist) %></p>
+<% end %>
+
+<% if members.any? %>
+<table class="list members">
+  <thead>
+    <tr>
+      <th><%= l(:label_user) %> / <%= l(:label_group) %></th>
+      <th><%= l(:label_role_plural) %></th>
+	  <th><%= l(:field_user_calendar_id) %></th>
+      <th style="width:15%"></th>
+      <%= call_hook(:view_projects_settings_members_table_header, :project => @project) %>
+    </tr>
+  </thead>
+  <tbody>
+  <% members.each do |member| %>
+  <% next if member.new_record? %>
+  <tr id="member-<%= member.id %>" class="<%= cycle 'odd', 'even' %> member">
+  <td class="name <%= member.principal.class.name.downcase %>"><%= link_to_user member.principal %></td>
+  <td class="roles">
+    <span id="member-<%= member.id %>-roles"><%= member.roles.sort.collect(&:to_s).join(', ') %></span>
+      <%= form_for(member,
+                   {:as => :membership, :remote => true,
+                    :url => membership_path(member),
+                    :method => :put,
+                    :html => { :id => "member-#{member.id}-roles-form", :class => 'hol' }}
+             ) do |f| %>
+        <p>
+          <% roles.each do |role| %>
+          <label>
+            <%= check_box_tag('membership[role_ids][]',
+                              role.id, member.roles.include?(role),
+                              :id => nil,
+                              :disabled => !member.role_editable?(role)) %> <%= role %>
+          </label><br />
+          <% end %>
+        </p>
+		<p><label for='user_calendar_id'><%= l(:field_user_calendar_id) %></label>
+		<%= select_tag('membership[user_calendar_id]', content_tag('option', "--- #{l(:label_default)} (#{UserCalendar.default.nil? ? "" : UserCalendar.default.name}) ---", :value => '') + 
+		options_from_collection_for_select(UserCalendar.order("name"), 'id', 'name', member.user_calendar_id), :onchange => "get_calendar()") %></p>
+        <%= hidden_field_tag 'membership[role_ids][]', '', :id => nil %>
+    <p>
+      <label for='owner'>
+        <%= check_box_tag('membership[owner]', (member.projects.include?(@project) ? 1 : 0), member.projects.include?(@project), :id => 'owner') %>
+        <%= l(:field_owner) %>
+      </label>
+    </p>
+        <p>
+          <%= submit_tag l(:button_save), :class => "small" %>
+          <%= link_to_function(l(:button_cancel),
+                               "$('#member-#{member.id}-roles').show(); $('#member-#{member.id}-roles-form').hide(); return false;") %>
+        </p>
+      <% end %>
+  </td>
+  <td class="user_calendar" style="width: 20%;"><%= member.user_calendar.nil? ? UserCalendar.default : member.user_calendar %></td>
+  <td class="buttons">
+      <%= link_to_function l(:button_edit),
+                           "$('#member-#{member.id}-roles').hide(); $('#member-#{member.id}-roles-form').show(); return false;",
+                           :class => 'icon icon-edit' %>
+      <%= delete_link membership_path(member),
+                      :remote => true,
+                      :data => (!User.current.admin? && member.include?(User.current) ? {:confirm => l(:text_own_membership_delete_confirmation)} : {}) if member.deletable? %>
+  </td>
+  <%= call_hook(:view_projects_settings_members_table_row, { :project => @project, :member => member}) %>
+  </tr>
+<% end; reset_cycle %>
+  </tbody>
+</table>
+<% else %>
+<p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

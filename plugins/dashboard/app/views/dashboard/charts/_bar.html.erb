@@ -1,0 +1,60 @@
+$("#<%= div_id %>").empty();
+$("#<%= div_id %>").highcharts({
+  chart: {
+    zoomType: 'xy'
+  },
+  legend: {
+    enabled: false
+  },
+  exporting: {
+    filename: '<%= filename %>'
+  },
+  title: {
+    text: '<%= title %>'
+  },
+  subtitle: {
+    text: ''
+  },
+  xAxis: {
+    categories: ['<%= raw data.keys.join("','") %>'],
+    crosshair: true
+  },
+  yAxis: {
+    title: {
+      text: ''
+    },
+  },
+  tooltip: {
+    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+    '<td style="padding:0"><b>{point.y:.0f}</b></td></tr>',
+    footerFormat: '</table>',
+    shared: true,
+    useHTML: true
+  },
+  plotOptions: {
+    series: {
+      borderWidth: 0,
+      dataLabels: {
+        allowOverlap: true,
+        padding: 15,
+        enabled: true,
+        formatter: function () {
+          if (this.y > 0) {
+            return Math.round(this.y);
+          }
+        },
+        style: {
+          fontSize: '9px'
+        },
+        inside: true,
+      }
+    }
+  },
+  series: [{
+    colorByPoint: true,
+    type: 'column',
+    name: '<%= serie_name %>',
+    data: [<%= raw data.values.join(',') %>]
+  }]
+});

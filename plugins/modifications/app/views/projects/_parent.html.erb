@@ -1,0 +1,17 @@
+<tr class="project <%= cycle("odd", "even") %> hascontextmenu <%= project.css_classes %> <%= project.tree_class %> <%= project.ancestors.size > 0 && @query.is_tree ? "idnt idnt-#{project.ancestors.size}" : nil %>" 
+  style="<%= project.ancestors.size > 0 && @query.is_tree ? "display: none;" : nil %>">
+  <td class="checkbox hide-when-print" style="display:none;"><%= check_box_tag("id", project.id, false, :id => nil) %></td>
+  <%= raw @query.inline_columns.map {|column| 
+	if project.descendants.size > 0
+	  if column.name.to_s == 'name' && @query.is_tree
+		"<td class=\"#{column.css_classes}\" style=\"padding-left: #{(project.ancestors.size > 0 && @query.is_tree ? project.ancestors.size + 0.5 : 0)}em;\">#{content_tag(:span, '&nbsp;'.html_safe, :class => 'toggle-multiselect hidde_tr', "data-id".to_sym => project.id, "data-display".to_sym => 0)}&nbsp;#{column_content(column, project)}</td>"
+	  else
+		"<td class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+	  end
+	elsif project.parent.nil?
+	  column.name.to_s == 'name' ? "<td class=\"#{column.css_classes}\" style=\"padding-left: #{(project.ancestors.size > 0 && @query.is_tree ? project.ancestors.size + 0.5 : 0)}em;\">#{column_content(column, project)}</td>" : "<td class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+	else
+	  column.name.to_s == 'name' ? "<td class=\"#{column.css_classes}\" style=\"padding-left: #{(project.ancestors.size > 0 && @query.is_tree ? project.ancestors.size + 0.5 : 0)}em;\"><span>#{column_content(column, project)}</span></td>" : "<td class=\"#{column.css_classes}\">#{column_content(column, project)}</td>"
+	end
+  }.join %>
+</tr>

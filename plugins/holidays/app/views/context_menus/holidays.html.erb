@@ -1,0 +1,6 @@
+<ul>
+    <li><%= context_menu_link l(:button_edit), edit_holiday_path(@holiday),
+            :class => 'icon-edit' %></li>
+	<li><%= context_menu_link l(:button_delete), holiday_path(@holiday, :back_url => @back),
+                            :method => :delete, :data => {:confirm => l(:text_are_you_sure)}, :class => 'icon-del' %></li>
+</ul>

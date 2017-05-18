@@ -1,0 +1,3 @@
+<% project.descendants.select{|c| !c.is_committee?}.each do |children_project|%>
+  <option selected="selected" value="<%= children_project.id %>"><%= children_project.name %></option>
+<%end%>

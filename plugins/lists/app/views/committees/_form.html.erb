@@ -1,0 +1,20 @@
+<%= error_messages_for 'committee' %>
+
+
+<!--[form:committee]-->
+<div class="box tabular">
+	<p><%= f.text_field :initial, :required => true, :size => 13 %></p>
+  <p><%= f.text_field :name, :required => true, :size => 100 %></p>
+  <p><%= f.select :periodicity,
+      		Committee::PERIODICITIES.collect {|o| [ l("label_#{o[1]}"), o[0]]},
+      		{:required => true, :include_blank => true}
+		%></p>
+	<p><%= f.text_area :objectives, :required => false, :rows => 2 %></p>
+	<p><%= f.text_area :kpi, :required => false, :rows => 2 %></p>
+	<p><%= f.text_area :deliverable, :required => false, :rows => 2 %></p>
+</div>
+<div style="clear:left;"></div>
+<!--[eoform:committee]-->
+<%= javascript_tag do %>
+
+<% end %>

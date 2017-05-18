@@ -1,0 +1,12 @@
+<% if @allowed_statuses.present? %>
+    <ul>
+      <%= call_hook(:view_issues_context_menu_start, {:issues => @issues, :can => @can, :back => @back }) %>
+      <% @allowed_statuses.each do |s| -%>
+          <li><%= context_menu_link s.name, bulk_update_issues_path(:ids => @issue_ids, :issue => {:status_id => s}, :back_url => @back), :method => :post,
+                                    :selected => (@issue && s == @issue.status), :disabled => !@can[:edit] %></li>
+      <% end -%>
+      <%= call_hook(:view_issues_context_menu_end, {:issues => @issues, :can => @can, :back => @back }) %>
+    </ul>
+<% end %>
+
+

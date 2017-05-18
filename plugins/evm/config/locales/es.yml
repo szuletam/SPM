@@ -1,0 +1,4 @@
+# English strings go here for Rails i18n
+es:
+  project_module_evm: "Indicadores"
+  

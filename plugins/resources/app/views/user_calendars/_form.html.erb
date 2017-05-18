@@ -1,0 +1,59 @@
+<%= error_messages_for 'user_calendar' %>
+
+
+<!--[form:user_calendar]-->
+<div class="box tabular">
+  <%= hidden_field_tag 'calendar_hours', '' %>
+  <p><%= f.text_field :name, :required => true %></p>
+  <div class="div-user-calendar-label">
+	<label for="user_calendar_availability">
+	  <%= l(:field_availability) %>
+	  <span class="required"> *</span>
+	</label>
+  </div>
+  
+  <div class="div-user-calendar">
+    <%= calendar_widget(@user_calendar_hours) %>
+  </div>
+  
+</div>
+<div style="clear:left;"></div>
+<!--[eoform:user_calendar]-->
+<%= javascript_tag do %>
+
+<% end %>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag(:user_calendar, :plugin => 'resources', :media => 'all') %>
+  <%= stylesheet_link_tag("jquery-ui", :plugin => 'resources', :media => 'all') %>
+  <%= javascript_include_tag("jquery-ui", :plugin => 'resources') %> 
+<% end %>
+<script>
+
+$(".user-calendar-table").selectable({
+  filter: ".tr-selectable", 
+  stop: function() {
+	set_data();
+  }
+});
+
+function set_data(){
+  data = [];
+  data[1] = [];
+  data[2] = [];
+  data[3] = [];
+  data[4] = [];
+  data[5] = [];
+  data[6] = [];
+  data[7] = [];
+  $( ".ui-selected").each(function() {
+    data[parseInt($(this).data("day"))].push($(this).data("hour"));
+	url = Object.keys(data).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
+    }).join('&');
+    $("#calendar_hours").val(url);
+  });
+}
+
+set_data();
+</script>

@@ -1,0 +1,55 @@
+<%= form_tag({:action => 'edit', :tab => 'projects'}) do %>
+
+<div class="box tabular settings">
+
+<p><%= setting_check_box :default_projects_public %></p>
+
+<p><%= setting_multiselect(:default_projects_modules,
+        Redmine::AccessControl.available_project_modules.select{|it| it != :gantt}.collect {|m| [l_or_humanize(m, :prefix => "project_module_"), m.to_s]}) %></p>
+
+<p><%= setting_multiselect(:default_projects_tracker_ids,
+        Tracker.sorted.all.collect {|t| [t.name, t.id.to_s]}) %></p>
+
+<p><%= setting_check_box :sequential_project_identifiers %></p>
+
+<p><%= setting_select :new_project_user_role_id,
+                      Role.find_all_givable.collect {|r| [r.name, r.id.to_s]},
+                      :blank => "--- #{l(:actionview_instancetag_blank_option)} ---" %></p>
+
+<p><%= setting_select :default_calendar,
+                      UserCalendar.order("name").all.collect {|c| [c.name, c.id.to_s]},
+                      :blank => "--- #{l(:label_none)} ---" %></p>					  
+
+<p><%= setting_select :start_calendar_time,
+                      [*0..24]
+ %></p>
+
+<p><%= setting_select :end_calendar_time,
+                      [*0..24]
+ %></p>
+
+
+<p><%= setting_select :default_project_for_project,
+                      ProjectType.order("name").all.collect {|c| [c.name, c.id.to_s]},
+                      :blank => "--- #{l(:label_none)} ---" %></p>
+
+<p><%= setting_select :default_project_for_committee,
+                      ProjectType.order("name").all.collect {|c| [c.name, c.id.to_s]},
+                      :blank => "--- #{l(:label_none)} ---" %></p>
+
+<p><%= setting_select :default_project_for_strategy,
+                      ProjectType.order("name").all.collect {|c| [c.name, c.id.to_s]},
+                      :blank => "--- #{l(:label_none)} ---" %></p>
+</div>
+
+
+
+<fieldset class="box">
+	<legend><%= l(:setting_project_list_default_columns) %></legend>
+  <%= render_query_columns_selection_project(
+        ProjectQuery.new(:column_names => Setting.project_list_default_columns),
+        :name => 'settings[project_list_default_columns]') %>
+</fieldset>
+
+<%= submit_tag l(:button_save) %>
+<% end %>

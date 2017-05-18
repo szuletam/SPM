@@ -1,0 +1,11 @@
+es:
+  label_advanced: "Avance"
+  label_advanced_porcent: "% Avance"
+  label_weight: "% Peso"
+  label_delayed: "Retraso"
+  label_delayed_porcent: "% Retraso"
+  permission_advanced: "Avance"
+  field_advanced: "Avance"
+  project_module_advanced: "Avance"
+  label_return_dashboard: "Regresar"
+  label_no_data_charts: "No existen datos para mostrar."

@@ -1,0 +1,103 @@
+<h2><%= l(:label_planning_simulate) %></h2>
+
+<%= form_tag(planning_simulate_path({:id  => @project.identifier})) do %>
+  <fieldset>
+	<legend><%= l(:label_filter_plural) %></legend>
+	<%= label_tag "", l(:field_start_date), :style => "font-weight: bold;" %>&nbsp; 
+	<%= text_field_tag 'start_date', params[:start_date], :style => "width: 100px;" %><%= calendar_for "start_date" %>
+	&nbsp;
+	<%= label_tag "", l(:label_user_plural), :style => "font-weight: bold;" %>&nbsp; 
+	<%= select_tag 'user_id', content_tag('option') + options_from_collection_for_select(@users, :id, :name, params[:user_id].to_i), :onchange => ""  %>
+	&nbsp;
+	<%= label_tag "", l(:label_update_issue_dates) , :style => "font-weight: bold;" %> 
+	<%= check_box_tag('update_issue_dates', '1', false) %>
+	&nbsp;
+	<%= submit_tag l(:button_apply) %>
+</fieldset>
+<% end %>
+
+<div style="overflow-x: scroll; margin-top: 10px;">
+<table class="list issues simulate">
+  <thead>
+	<tr>
+		<th rowspan="2" class="row-data"><%= l(:field_issue) %></th>
+		<th rowspan="2"><%= l(:field_estimated_hours) %></th>
+		<%= get_th_months(@month_hash, @keys) %>
+	</tr>
+	<tr>
+		<%= get_th_days(@month_hash, @keys) %>
+	</tr>
+  </thead>
+  <tbody>
+    <% @issues.each do |issue| %>
+	<tr>
+		<td class="row-data"><div><%= link_to(h(issue.subject), :controller => 'issues', :action => 'show', :id => issue) %></div></td>
+		<td><%= h((issue.estimated_hours.nil? ? 0.0 : issue.estimated_hours)) %></td>
+		<%= get_td_data(@month_hash, @keys, issue) %>
+	</tr>
+	
+	<% end %>
+	<% if ! @issues.any?%>
+		<tr>
+			<td colspan="2"><%= l(:label_no_data) %></td>
+		</tr>
+	<% end %>
+  </tbody>
+</table>
+</div>
+
+
+<script>
+  $('#filters-table').on('click', '.toggle-multiselect', function() {});
+</script>
+<% content_for :header_tags do %>
+<style>
+  .simulate td { 
+	font-size: 11px;
+	text-align: center;
+}
+
+.simulate td.month { 
+	font-size: 11px;
+	padding: 2px;
+}
+
+.simulate td.day { 
+	font-size: 11px;
+	padding: 2px;
+	vertical-align: middle;
+}
+
+.simulate th.month { 
+	font-size: 11px;
+	padding: 2px;
+}
+
+.simulate th.row-data{ 
+	width: 250px !important;
+	min-width: 250px !important;
+	max-width: 250px !important;
+	overflow: hidden;
+}
+
+.simulate td.row-data{ 
+	width: 250px !important;
+	min-width: 250px !important;
+	max-width: 250px !important;
+	text-align: left;
+	overflow: hidden;
+}
+
+.simulate th.day { 
+	font-size: 11px;
+}
+
+.simulate th { 
+	font-size: 12px;
+	text-align: center;
+	vertical-align: middle;
+	white-space: normal !important;
+}
+</style>
+<% end %>
+<% html_title(l(:label_planning_simulate)) %>

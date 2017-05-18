@@ -1,0 +1,235 @@
+<script>
+	function issue_recurrence_popup_<%=random%>(check){
+		if(check.checked && check.value == '0'){
+			showModal('issue_recurrence_popup_<%=random%>', 'auto');
+			$("#issue_recurrence_popup_<%=random%>").dialog("option", "closeOnEscape", false);
+			check.value = '1';
+		}
+		else
+		{
+			check.value = '0';
+		}
+	}
+
+	function validate_form_<%=random%>(element){
+		$('#form_recurrence_data_<%=random%>').val($('#issue_recurrence_popup_<%=random%>').find('input').serialize() + '&' + $('#issue_recurrence_popup_<%=random%>').find('select').serialize() + '&random=<%=random%>');
+		data = $('#form_recurrence_data_<%=random%>').val();
+		$.ajax({
+			url: "<%= url_for(validate_recurrence_for_committee_path) %>",
+			data: data,
+			method: "post",
+			success: function(obj){
+				if(obj.valid == true){
+					$('#form_recurrence_valid_<%=random%>').val(1);
+					hideModal(element);
+				}
+				else{
+					$('#form_recurrence_valid_<%=random%>').val(0);
+					alert(obj.msg);
+				}
+			},
+			error: function(obj){
+				alert("error");
+				hideModal(element);
+				$('#form_recurrence_valid_<%=random%>').val(0);
+			}
+		});
+		return false;
+	}
+
+	function recurrence_ending_type_<%=random%>(radio){
+		if(radio.value == 'recurrence_ending_<%=random%>'){
+			$("#recurrence_ending_<%=random%>").removeProp("disabled");
+			$("#recurrence_ending_<%=random%>").attr('disabled', false);
+			$("#recurrence_end_after_<%=random%>").datepicker('disable');
+		}
+		else{
+			$("#recurrence_ending_<%=random%>").attr('disabled', true);
+			$("#recurrence_ending_<%=random%>").val("0");
+			$("#recurrence_end_after_<%=random%>").datepicker('enable');
+		}
+	}
+
+	function chanche_select_div_<%=random%>(radio)
+	{
+		arr = ["daily", "weekly", "monthly", "yearly"];
+		for(i = 0 ; i < arr.length; i++){
+			if(radio.value == arr[i]){
+				$("#select_div_<%=random%>_" + arr[i]).css("display", "block");
+			}
+			else{
+				$("#select_div_<%=random%>_" + arr[i]).css("display", "none");
+			}
+		}
+	}
+</script>
+<% if params["recurrent_issue_#{random}"] && !params["recurrent_issue_#{random}"].blank? %>
+		<% url_data = CGI::parse(params["form_recurrence_data_#{random}"]) %>
+
+		<%= check_box_tag "recurrent_issue_#{random}", params["recurrent_issue_#{random}"].to_i, params["recurrent_issue_#{random}"].to_i, :onclick => "issue_recurrence_popup_#{random}(this);" %>
+		<%= hidden_field_tag("form_recurrence_data_#{random}", params["form_recurrence_data_#{random}"])%>
+
+		<div id="issue_recurrence_popup_<%=random%>" style="display:none; width: 600px ! important">
+			<h3 class="title"><%= l(:label_recurrent_issue) %></h3>
+			<fieldset>
+				<legend><%= l(:label_pattern_repetition) %></legend>
+				<div style="width: 20%; float: left; border-right: black dashed 1px;">
+					<% recurrence_type = url_data["recurrence_type_#{random}"] && url_data["recurrence_type_#{random}"][0] ? url_data["recurrence_type_#{random}"][0] : 'weekly' %>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'daily', recurrence_type == 'daily', :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_daily) %></label><br/><br/>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'weekly', recurrence_type == 'weekly', :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_weekly) %></label><br/><br/>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'monthly', recurrence_type == 'monthly', :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_monthly) %></label><br/><br/>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'yearly', recurrence_type == 'yearly', :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_yearly) %></label><br/><br/>
+				</div>
+				<div style="width: 75%; float: left; padding-left: 10px;">
+					<div id="select_div_<%=random%>_daily" style="display: <%= recurrence_type == 'daily' ? 'block' : 'none'%>;">
+						<div style="float: left; width: 20%;">
+							<label><%= l(:label_recurrence_days) %></label>
+							<% recurrence_days = url_data["recurrence_days_#{random}"] && url_data["recurrence_days_#{random}"][0] ? url_data["recurrence_days_#{random}"][0] : 0 %>
+							<%= text_field_tag "recurrence_days_#{random}", recurrence_days, :size => 2%>
+						</div>
+						<div style="float: right; width: 77%;">
+							<% recurrence_days_type = url_data["recurrence_days_type_#{random}"] && url_data["recurrence_days_type_#{random}"][0] ? url_data["recurrence_days_type_#{random}"][0] : 'all_days' %>
+							<%= radio_button_tag "recurrence_days_type_#{random}", 'all_days', recurrence_days_type == 'all_days' %><label><%= l(:label_recurrence_days_type_all_days) %></label>
+							<br/>
+							<%= radio_button_tag "recurrence_days_type_#{random}", 'work_days', recurrence_days_type == 'work_days' %><label><%= l(:label_recurrence_days_type_work_days) %></label>
+						</div>
+					</div>
+					<div id="select_div_<%=random%>_weekly" style="display: <%= recurrence_type == 'weekly' ? 'block' : 'none'%>;">
+						<fieldset class="box tabular recurrence_week">
+							<legend><%= l(:label_recurrence_days_of_week) %></legend>
+							<% recurrence_days_of_week = url_data["recurrence_days_of_week_#{random}"] ? url_data["recurrence_days_of_week_#{random}"] : [] %>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'monday', recurrence_days_of_week.include?('monday') %><%= l(:label_recurrence_monday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'tuesday', recurrence_days_of_week.include?('tuesday')  %><%= l(:label_recurrence_tuesday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'wednesday', recurrence_days_of_week.include?('wednesday')  %><%= l(:label_recurrence_wednesday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'thursday', recurrence_days_of_week.include?('thursday')  %><%= l(:label_recurrence_thursday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'friday', recurrence_days_of_week.include?('friday')  %><%= l(:label_recurrence_friday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'saturday', recurrence_days_of_week.include?('saturday')  %><%= l(:label_recurrence_saturday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'sunday', recurrence_days_of_week.include?('sunday')  %><%= l(:label_recurrence_sunday) %>&nbsp;</label>
+						</fieldset>
+					</div>
+					<div id="select_div_<%=random%>_monthly" style="display: <%= recurrence_type == 'monthly' ? 'block' : 'none'%>;">
+						<label style="margin-right: 10px;"><%= l(:label_recurrence_day) %></label>
+						<% recurrence_day_monthly = url_data["recurrence_day_monthly_#{random}"] && url_data["recurrence_day_monthly_#{random}"][0] ? url_data["recurrence_day_monthly_#{random}"][0] : nil %>
+						<%= select_tag "recurrence_day_monthly_#{random}", options_for_select([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31], recurrence_day_monthly) %>
+						<label style="margin-right: 10px; margin-left: 15px;"><%= l(:label_recurrence_of_every) %></label>
+						<% recurrence_of_every_monthly = url_data["date[recurrence_of_every_monthly_#{random}]"] && url_data["recurrence_of_every_monthly_#{random}"][0] ? url_data["recurrence_of_every_monthly_#{random}"][0] : 1 %>
+						<%= text_field_tag "recurrence_of_every_monthly_#{random}", recurrence_of_every_monthly, :size => 2%>
+						<label style="margin-right: 10px; margin-left: 15px;"><%= l(:label_recurrence_months) %></label>
+					</div>
+					<div id="select_div_<%=random%>_yearly" style="display: <%= recurrence_type == 'yearly' ? 'block' : 'none'%>;">
+						<label style="margin-right: 15px;"><%= l(:label_recurrence_he) %></label>
+						<% recurrence_yearly = url_data["date[recurrence_day_yearly_#{random}]"] &&
+								url_data["date[recurrence_day_yearly_#{random}]"][0] &&
+								url_data["date[recurrence_month_yearly_#{random}]"] &&
+								url_data["date[recurrence_month_yearly_#{random}]"][0] &&
+								("#{Date.today.year}-#{url_data["date[recurrence_day_yearly_#{random}]"][0]}-#{url_data["date[recurrence_month_yearly_#{random}]"][0]}".to_date rescue false) ? "#{Date.today.year}-#{url_data["date[recurrence_day_yearly_#{random}]"][0]}-#{url_data["date[recurrence_month_yearly_#{random}]"][0]}".to_date : Date.today %>
+						<%= select_day(recurrence_yearly, :field_name => "recurrence_day_yearly_#{random}", :prefix => nil) %>
+						<%= select_month(recurrence_yearly, :field_name => "recurrence_month_yearly_#{random}", :prefix => nil) %>
+					</div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend><%= l(:label_repetition_interval) %></legend>
+				<div style="float: left; :width: 47%;">
+					<% recurrence_beginning = url_data["recurrence_beginning_#{random}"] &&
+																		url_data["recurrence_beginning_#{random}"][0] &&
+																		(url_data["recurrence_beginning_#{random}"][0].to_date rescue false) ? url_data["recurrence_beginning_#{random}"][0] : Date.today.to_s(:db) %>
+					<label style="font-weight: bold;"><%= l(:label_recurrence_beginning) %></label><%= date_field_tag "recurrence_beginning_#{random}", recurrence_beginning, :size => 10 %><%= calendar_for("recurrence_beginning_#{random}") %>
+				</div>
+				<div style="float: right; :width: 47%;">
+					<% recurrence_ending_type = url_data["recurrence_ending_type_#{random}"] && url_data["recurrence_ending_type_#{random}"][0] ? url_data["recurrence_ending_type_#{random}"][0] : "recurrence_ending_#{random}" %>
+					<% recurrence_ending = url_data["recurrence_ending_#{random}"] && url_data["recurrence_ending_#{random}"][0] ? url_data["recurrence_ending_#{random}"][0] : '0' %>
+					<% recurrence_end_after = url_data["recurrence_end_after_#{random}"] && url_data["recurrence_end_after_#{random}"][0] ? url_data["recurrence_end_after_#{random}"][0] : '' %>
+					<%= radio_button_tag "recurrence_ending_type_#{random}", "recurrence_ending_#{random}", recurrence_ending_type == "recurrence_ending_#{random}", :onclick => "recurrence_ending_type_#{random}(this);" %><label style="font-weight: bold;"><%= l(:label_recurrence_ending) %></label><%= text_field_tag "recurrence_ending_#{random}", recurrence_ending, :size => 4 %><br/>
+					<%= radio_button_tag "recurrence_ending_type_#{random}", "recurrence_end_after_#{random}", recurrence_ending_type == "recurrence_end_after_#{random}", :onclick => "recurrence_ending_type_#{random}(this);" %><label style="font-weight: bold;"><%= l(:label_recurrence_end_after) %></label> <%= date_field_tag "recurrence_end_after_#{random}", recurrence_end_after, :size => 10 %><%= calendar_for("recurrence_end_after_#{random}") %><script>$("#recurrence_end_after_<%=random%>").datepicker('disable');</script>
+				</div>
+			</fieldset>
+			<br/>
+			<% form_recurrence_valid = url_data["form_recurrence_valid_#{random}"] && url_data["form_recurrence_valid_#{random}"][0] ? url_data["form_recurrence_valid_#{random}"][0] : 0 %>
+			<%= hidden_field_tag "form_recurrence_valid_#{random}", form_recurrence_valid %>
+			<%= submit_tag(l(:button_save), :onclick => "validate_form_#{random}(this);") %>
+		</div>
+
+<% else %>
+		<%= check_box_tag "recurrent_issue_#{random}", 0, false, :onclick => "issue_recurrence_popup_#{random}(this);" %>
+		<%= hidden_field_tag("form_recurrence_data_#{random}", '')%>
+
+		<div id="issue_recurrence_popup_<%=random%>" style="display:none; width: 600px ! important">
+			<h3 class="title"><%= l(:label_recurrent_issue) %></h3>
+			<fieldset>
+				<legend><%= l(:label_pattern_repetition) %></legend>
+				<div style="width: 20%; float: left; border-right: black dashed 1px;">
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'daily', false, :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_daily) %></label><br/><br/>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'weekly', true, :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_weekly) %></label><br/><br/>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'monthly', false, :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_monthly) %></label><br/><br/>
+					<label style="font-weight: bold;"><%= radio_button_tag "recurrence_type_#{random}", 'yearly', false, :onclick => "chanche_select_div_#{random}(this);" %><%= l(:label_recurrence_yearly) %></label><br/><br/>
+				</div>
+				<div style="width: 75%; float: left; padding-left: 10px;">
+					<div id="select_div_<%=random%>_daily" style="display: none;">
+						<div style="float: left; width: 20%;">
+							<label><%= l(:label_recurrence_days) %></label>
+							<%= text_field_tag "recurrence_days_#{random}", 0, :size => 2%>
+						</div>
+						<div style="float: right; width: 77%;">
+							<%= radio_button_tag "recurrence_days_type_#{random}", 'all_days', true %><label><%= l(:label_recurrence_days_type_all_days) %></label>
+							<br/>
+							<%= radio_button_tag "recurrence_days_type_#{random}", 'work_days', false %><label><%= l(:label_recurrence_days_type_work_days) %></label>
+						</div>
+					</div>
+					<div id="select_div_<%=random%>_weekly" style="display: block;">
+						<fieldset class="box tabular recurrence_week">
+							<legend><%= l(:label_recurrence_days_of_week) %></legend>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'monday', false %><%= l(:label_recurrence_monday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'tuesday', false %><%= l(:label_recurrence_tuesday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'wednesday', false %><%= l(:label_recurrence_wednesday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'thursday', false %><%= l(:label_recurrence_thursday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'friday', false %><%= l(:label_recurrence_friday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'saturday', false %><%= l(:label_recurrence_saturday) %>&nbsp;</label>
+							<label class="floating" style="width: 120px;"><%= check_box_tag "recurrence_days_of_week_#{random}", 'sunday', false %><%= l(:label_recurrence_sunday) %>&nbsp;</label>
+						</fieldset>
+					</div>
+					<div id="select_div_<%=random%>_monthly" style="display: none;">
+						<label style="margin-right: 10px;"><%= l(:label_recurrence_day) %></label>
+						<%= select_tag "recurrence_day_monthly_#{random}", options_for_select([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]) %>
+						<label style="margin-right: 10px; margin-left: 15px;"><%= l(:label_recurrence_of_every) %></label>
+						<%= text_field_tag "recurrence_of_every_monthly_#{random}", 1, :size => 2%>
+						<label style="margin-right: 10px; margin-left: 15px;"><%= l(:label_recurrence_months) %></label>
+					</div>
+					<div id="select_div_<%=random%>_yearly" style="display: none;">
+						<label style="margin-right: 15px;"><%= l(:label_recurrence_he) %></label>
+						<%= select_day(Date.today, :field_name => "recurrence_day_yearly_#{random}", :prefix => nil) %>
+						<%= select_month(Date.today, :field_name => "recurrence_month_yearly_#{random}", :prefix => nil) %>
+					</div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend><%= l(:label_repetition_interval) %></legend>
+				<div style="float: left; :width: 47%;">
+					<label style="font-weight: bold;"><%= l(:label_recurrence_beginning) %></label><%= date_field_tag "recurrence_beginning_#{random}", Date.today.to_s(:db), :size => 10 %><%= calendar_for("recurrence_beginning_#{random}") %>
+				</div>
+				<div style="float: right; :width: 47%;">
+					<%= radio_button_tag "recurrence_ending_type_#{random}", "recurrence_ending_#{random}", true, :onclick => "recurrence_ending_type_#{random}(this);" %><label style="font-weight: bold;"><%= l(:label_recurrence_ending) %></label><%= text_field_tag "recurrence_ending_#{random}", '0', :size => 4 %><br/>
+					<%= radio_button_tag "recurrence_ending_type_#{random}", "recurrence_end_after_#{random}", false, :onclick => "recurrence_ending_type_#{random}(this);" %><label style="font-weight: bold;"><%= l(:label_recurrence_end_after) %></label> <%= date_field_tag "recurrence_end_after_#{random}", '', :size => 10 %><%= calendar_for("recurrence_end_after_#{random}") %><script>$("#recurrence_end_after_<%=random%>").datepicker('disable');</script>
+				</div>
+			</fieldset>
+			<br/>
+			<%= hidden_field_tag "form_recurrence_valid_#{random}", 0 %>
+			<%= submit_tag(l(:button_save), :onclick => "validate_form_#{random}(this);") %>
+		</div>
+
+<% end %>
+
+
+
+<script>
+	$('div#issue_recurrence_popup_<%=random%>').bind('dialogclose', function(event) {
+		if($('#form_recurrence_valid_<%=random%>').val() == '0'){
+			$('#recurrent_issue_<%=random%>').attr('checked', false);
+			$('#form_recurrence_data_<%=random%>').val('');
+			$('#recurrent_issue_<%=random%>').val('0');
+		}
+		else{
+			$('#recurrent_issue_<%=random%>').val('1');
+		}
+	});
+</script>

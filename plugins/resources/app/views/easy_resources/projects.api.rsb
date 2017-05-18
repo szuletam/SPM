@@ -1,0 +1,37 @@
+api.easy_gantt_data do
+  api.array :columns do
+    @query.columns.each do |c|
+      api.column do
+        api.name c.name
+        api.title c.caption
+      end
+    end
+  end
+  api.array :projects do
+    #@projects.each do |project|
+	@users.each do |user|
+      api.project do
+        api.id user.id
+        api.name user.name
+        if @user_dates[user.id][:due_date].nil? && ! @user_dates[user.id][:max_date].nil?
+          api.due_date @user_dates[user.id][:max_date] rescue nil
+        elsif ! @user_dates[user.id][:due_date].nil? && @user_dates[user.id][:max_date].nil?
+          api.due_date @user_dates[user.id][:due_date] rescue nil
+        elsif ! @user_dates[user.id][:due_date].nil? && ! @user_dates[user.id][:max_date].nil?
+           if @user_dates[user.id][:max_date] > @user_dates[user.id][:due_date]
+             api.due_date @user_dates[user.id][:max_date] rescue nil
+           else
+             api.due_date @user_dates[user.id][:due_date] rescue nil
+           end
+        else
+          api.due_date @user_dates[user.id][:due_date] rescue nil
+        end
+        api.start_date @user_dates[user.id][:start_date] rescue nil
+        api.parent_id nil
+        api.is_baseline false
+        api.has_children true
+	    api.curr_project (@project.nil? ? 0 : @project.id)
+      end
+    end
+  end
+end

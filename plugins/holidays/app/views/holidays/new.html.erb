@@ -1,0 +1,19 @@
+<%= title [l(:label_holidays), holidays_path], l(:label_holiday_new) %>
+
+<%= labelled_form_for @holiday, :url => holidays_path do |f| %>
+  <%= render :partial => 'form', :locals => { :f => f } %>
+  <p>
+    <%= submit_tag l(:button_create) %>
+  </p>
+<% end %>
+
+<% content_for :sidebar do %>
+	<h3><%= l(:label_administration) %></h3>
+	<div id="admin-menu">
+		<ul>
+			<%= render_menu :admin_menu %>
+		</ul>
+	</div>
+<% end %>
+
+<% html_title l(:label_holidays) %>

@@ -1,0 +1,8 @@
+# English strings go here for Rails i18n
+en:
+  label_directions: "Directions"
+  label_direction_new: "New direction"
+  field_initial: "Initial"
+  label_committees: "Committees"
+  label_committee_new: "Nuevo Committee"
+  field_periodicity: "Periodicity"

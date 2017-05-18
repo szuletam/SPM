@@ -1,0 +1,9 @@
+<%=  l(:mail_body_whining_admin, :admin => @admin) %>
+
+<% @issues.group_by(&:assigned_to).each do |assigned,issues| -%>
+- <%=assigned%>
+  <% issues.each do |issue| -%>
+		* <%= "#{issue.project} - #{issue.tracker} ##{issue.spmid}: #{issue.subject} con Fecha fin/Plazo #{issue.due_date}" %>
+  <% end %>
+<% end -%>
+

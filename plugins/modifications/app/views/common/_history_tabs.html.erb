@@ -1,0 +1,8 @@
+<div id="history_tabs">
+  <% issue_tabs = [{ :name => 'history', :partial => 'issue_tabs/history', :label => :label_history } ]
+  if User.current.allowed_to?(:view_time_entries, @project)
+    issue_tabs << { :name => 'timelog', :partial => 'issue_tabs/timelog', :label => :label_spent_time }
+  end
+  %>
+  <%= render_tabs issue_tabs %>
+</div>

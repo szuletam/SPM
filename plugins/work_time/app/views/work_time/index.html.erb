@@ -1,0 +1,45 @@
+<%= stylesheet_link_tag(:work_time, :plugin => 'work_time', :media => 'all') %>
+
+<%= title l(:label_work_time), "#{month_name(@date.month)} - #{@date.year}" %>
+
+<%= form_tag({ :controller => 'work_time', :action => 'index', :project_id => @project.nil? ? nil : @project.id },
+            :method => :get, :id => 'query_form') do %>
+  <div id="query_form_with_buttons" class="hide-when-print">
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content">
+    <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
+      <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+        <%= render :partial => 'queries/filters', :locals => {:query => @query} %>
+      </div>
+    </fieldset>
+	<hr/>
+	<%if params[:project_id]%>
+	  <%= hidden_field_tag :project_id, params[:project_id] %>
+	<% end %>
+
+    </div>
+    <p class="buttons">
+    <%= link_to_function l(:button_apply), '$("#query_form").submit()', :class => 'icon icon-checked' %>
+    <%= link_to l(:button_clear), { :set_filter => 1, :project_id => @project }, :class => 'icon icon-reload'  %>
+    &nbsp;
+	<%= hidden_field_tag 'date', @date.strftime("%Y-%m-%d"), :onchange => "this.form.submit(); return false;", :style => "display: none;"%><%= calendar_for('date') %>
+	&nbsp;&nbsp;
+	<%= css_help %>
+	</p>
+  </div>
+<% end %>
+
+<%= error_messages_for 'query' %>
+
+<div id="table">
+  <%= render :partial => "table" %>
+</div>
+
+<div id="work-time-popup" style="display:none">
+  
+</div>
+
+<% other_formats_links do |f| %>
+  <%= f.link_to 'CSV', :url => params.merge({:format => :csv}) %>
+<% end %>

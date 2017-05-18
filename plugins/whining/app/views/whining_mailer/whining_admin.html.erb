@@ -1,0 +1,12 @@
+<p><%= 	l(:mail_body_whining_admin, :admin => @admin) %></p>
+<ul>
+<% @issues.group_by(&:assigned_to).each do |assigned,issues| %>
+	<ul>
+	<h2><%=assigned%></h2>
+	<%issues.each do |issue|%>
+    	<li><%=h issue.project%> - <%=link_to("#{issue.tracker} ##{issue.spmid}", :controller => 'issues', :action => 'show', :id => issue, :only_path => false)%>: <%=h "#{issue.subject} con Fecha fin/Plazo #{issue.due_date}" %></li>
+	<% end %>
+	</ul>
+<% end %>
+</ul>
+

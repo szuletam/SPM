@@ -1,0 +1,44 @@
+<style>
+  .vGood {background-color:#24a83f;}
+  .good {background-color:#26ec49;}
+  .avg {background-color:#fd0;}
+  .poor {background-color:#fa0;}
+  .vPoor {background-color:#f30;}
+  td.advanced_porcent {
+    border-bottom: 2px solid #fff !important;
+    padding: 0.5em 0 0.1em 0;
+  }
+</style>
+<%= javascript_include_tag(:highcharts, :plugin => 'advanced') %>
+<%= javascript_include_tag(:exporting, :plugin => 'advanced') %>
+<%= javascript_include_tag("highcharts-more", :plugin => 'advanced') %>
+<h2><%= l(:label_advanced) %></h2>
+<%= form_tag({ :controller => 'advanced', :action => 'index'},
+             :method => :get, :id => 'query_form') do %>
+
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content" class="hide-when-print">
+      <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+        <legend onclick="toggleFieldset(this);">
+          <%= l(:label_filter_plural) %>
+        </legend>
+        <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+          <%= render :partial => 'advanced/filters_advanced', :locals => {:query => @query, :show_add_filters => true} %>
+        </div>
+      </fieldset>
+    </div>
+    <p class="buttons hide-when-print">
+
+      <%= link_to_function l(:button_apply), '$("#query_form").submit();', :class => 'icon icon-checked' %>
+      <%= link_to l(:button_clear), { :set_filter => 1 }, :class => 'icon icon-reload'  %>
+    </p>
+<% end %>
+
+<%= render :partial => 'details', :locals => { :data => @data, :field_name => @field, :rows => @rows, :data_delay => @data_delay } %>
+<br>
+
+<%= render :partial => 'user_details', :locals => { :data2 => @data2, :field_name => @field, :rows2 => @rows2, :data_delay2 => @data_delay2 } %>
+<br>
+<% other_formats_links do |f| %>
+    <%= f.link_to 'XLSX', :url => params %>
+<% end %>

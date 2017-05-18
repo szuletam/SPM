@@ -1,0 +1,23 @@
+<h3 class="title"><%= l(:project_module_work_time) %></h3>
+<table class="list">
+  <% @time_entries.each do |time_entry| %>
+  <tr>
+    <td style="width: 20%;"><%= format_date(time_entry.spent_on) %></td>
+	<td style="width: 10%;"><%= time_entry.hours %></td>
+	<td style="text-align: left;"><%= time_entry.comments.truncate(50) %></td>
+	<td class="buttons">
+	  <% if User.current.allowed_to?(:edit_time_entries, time_entry.project) %>
+		<%= link_to_function("".html_safe, "edit_time_entry('#{time_entry.id}', '#{work_time_form_path}', '#{@include_project ? 1 : 0}')", :class => "icon icon-edit", :alt=> l(:button_edit), :style => " padding-right: 0px") %>	  
+		<%= link_to_function "".html_safe, "destroy_time_entry('#{time_entry.id}', '#{work_time_destroy_path}', '#{@include_project ? 1 : 0}', '#{l(:text_are_you_sure)}', '#{@include_project ? time_entry.project_id : ''}', '#{time_entry.user_id}', '#{time_entry.spent_on}')", :class => "icon icon-del", :alt=> l(:button_delete), :style => " padding-right: 0px" %>
+	  <% end %>
+	</td>
+  </tr>
+  <% end %>
+</table>
+&nbsp;
+<div id="time_entry_form">
+<%= form_for @time_entry, :url => work_time_create_path, :id => "time-entry-form" do |f| %>
+  <%= render :partial => 'form', :locals => {:f => f} %>
+  <%= submit_tag l(:button_create), :onclick => "save_time_entry(); return false;" %>
+<% end %>
+</div>

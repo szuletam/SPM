@@ -1,0 +1,9 @@
+<%= title @project.is_template? ? l(:label_project_template_new) : l(:label_project_new) %>
+
+<%= labelled_form_for @project do |f| %>
+<%= render :partial => 'form', :locals => { :f => f } %>
+<%= submit_tag l(:button_create) %>
+<% unless @project.is_template? %>
+  <%= submit_tag l(:button_create_and_continue), :name => 'continue' %>
+<% end %>
+<% end %>

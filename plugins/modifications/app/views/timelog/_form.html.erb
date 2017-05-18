@@ -1,0 +1,75 @@
+<%= error_messages_for 'time_entry' %>
+<%= back_url_hidden_field_tag %>
+
+<div class="box tabular">
+  <% if @time_entry.new_record? %>
+    <% if params[:project_id] %>
+      <%= hidden_field_tag 'project_id', params[:project_id] %>
+    <% elsif params[:issue_id] %>
+      <%= hidden_field_tag 'issue_id', params[:issue_id] %>
+    <% else %>
+      <p><%= f.select :project_id, project_tree_options_for_select(Project.allowed_to(:log_time).to_a, :selected => @time_entry.project, :include_blank => true, :required => true) %></p>
+    <% end %>
+  <% end %>
+  <p>
+    <%= f.text_field :issue_id, :size => 6, :required => false %>
+    <% if @time_entry.issue.try(:visible?) %>
+      <span id="time_entry_issue"><%= "#{@time_entry.issue.tracker.name} ##{@time_entry.issue.id}: #{@time_entry.issue.subject}" %></span>
+    <% end %>
+  </p>
+  <p><%= f.date_field :spent_on, :size => 10, :required => true %><%= calendar_for('time_entry_spent_on') %></p>
+  <p><%= f.text_field :hours, :size => 6, :required => true %></p>
+  <% if !@time_entry.issue.nil? %>
+	<%= fields_for :issue, @time_entry.issue, { :builder => Redmine::Views::LabelledFormBuilder, :lang => current_language} do |issue| %>
+	  <% if @time_entry.issue.leaf? && Issue.use_field_for_done_ratio? %>
+		<p><%= issue.select :done_ratio, ((0..10).to_a.collect {|r| ["#{r*10} %", (r*10).to_s] }) %></p>
+	  <% end %>
+	<% end %>
+  <% else %>
+    <p id="done_ratio_issue" style="display:none;">
+	  <label for="done_ratio"><%= l(:field_done_ratio)%></label>
+      <%= select_tag :done_ratio, (options_for_select([0,10,20,30,40,50,60,70,80,90,100].collect{ |a| [a.to_s + " %", a] })) %>
+    </p>
+  <% end %>
+  
+  
+  <p><%= f.text_field :comments, :size => 100, :maxlength => 1024, :required => true %></p>
+  <p><%= f.select :activity_id, activity_collection_for_select_options(@time_entry), :required => true %></p>
+  <% @time_entry.custom_field_values.each do |value| %>
+    <p><%= custom_field_tag_with_label :time_entry, value %></p>
+  <% end %>
+  <%= call_hook(:view_timelog_edit_form_bottom, { :time_entry => @time_entry, :form => f }) %>
+</div>
+
+<%= javascript_tag do %>
+<% if @time_entry.new_record? %>
+  $(document).ready(function(){
+    $('#time_entry_project_id, #time_entry_issue_id').change(function(){
+      $.ajax({
+        url: '<%= escape_javascript new_time_entry_path(:format => 'js') %>',
+        type: 'post',
+        data: $('#new_time_entry').serialize()
+      });
+    });
+  });
+<% end %>
+
+  observeAutocompleteField('time_entry_issue_id', '<%= escape_javascript auto_complete_issues_path(:project_id => @project, :scope => (@project ? nil : 'all'))%>', {
+    select: function(event, ui) {
+      $('#time_entry_issue').text(ui.item.label);
+      $('#time_entry_issue_id').blur();
+	  $.ajax({
+	    type: "POST",
+	    url: '<%= issue_get_done_ratio_path(:project_id => @project.id) %>',
+		data: { issue_id: $("#time_entry_issue_id" ).val() },
+	    success: function(msg){
+		  $("#done_ratio").val(msg);
+		  $("#done_ratio_issue").css("display", "block");
+	    },
+	    error: function (){
+		  alert("<%= l(:error_done_ratio) %>");
+	    },
+	  });
+    }
+  });
+<% end %>

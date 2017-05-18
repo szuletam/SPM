@@ -1,0 +1,90 @@
+# Spanish strings go here for Rails i18n
+es:
+  label_user_calendars: "Calendarios"
+  label_user_calendar_plural: "Calendarios"
+  label_user_calendars_new: "Nuevo Calendario"
+  field_availability: "Disponibilidad"
+  error_user_calendar_hours: "Debe seleccionar al menos un horario"
+  field_user_calendar_hours: "Horario"
+  setting_default_calendar: "Calendario por defecto"
+  error_no_default_calendar_selected: "No se ha seleccionado un calendario por defecto, por favor consulte con el administrador del sistema"
+  error_user_calendars_no_exist: "No existen calendarios para asignar al equipo de trabajo, por favor consulte con el administrador del sistema"
+  field_user_calendar_id: "Horario"
+  permission_issue_planning_simulation: "Simular planeación de actividades"
+  label_planning_simulate: "Simular planeación"
+  label_update_issue_dates: "Actualizar Actividades"
+  label_resources: "Recursos"
+  label_resources_gantt: "Gantt Recursos"
+  button_top_menu_easy_resources: "Recursos"
+  permission_view_easy_resources: "Ver Recursos"
+  permission_edit_easy_resources: "Editar Recursos"
+  project_module_easy_resources: "Recursos"
+  button_project_menu_easy_resources: "Recursos"
+  button_print: "Imprimir"
+  button_project_menu_easy_gantt: "Gantt"
+  button_top_menu_easy_gantt: "Gantt"
+  easy_resources:
+    button:
+      create_baseline: "Línea Base"
+      critical_path: "Ruta Crítica"
+      day_zoom: "Día"
+      jump_today: "Saltar a Hoy"
+      load_sample_data: "Cargar Información Prueba"
+      month_zoom: "Meses"
+      reload: "Actualizar (Guardar)"
+      resource_management: "Administración Recursos"
+      week_zoom: "Semanas"
+    errors:
+      duplicate_link: "No se puede crear enlace duplicado"
+      unsaved_parent: "No se puede agregar tareas con padres sin guardar. Guarde los cambios primero"
+      loop_link: "No se puede crear enlace en bucle"
+      overmile: "Tarea debe terminar antes de su hito"
+      too_short: "Tarea es demasiado corta conteo de horas estimadas"
+    gateway:
+      send_failed: "Petición Fallo"
+    label_pro_upgrade: ""
+    link_dir:
+      link_end: "Es precedido"
+      link_start: "Es seguido"
+    popup:
+      add_task:
+        heading: "Adicionar caracteristica actividad"
+        text: ! ""
+      baseline:
+        heading: "Línea base"
+        text: ! ""
+      critical:
+        heading: "Ruta Crítica"
+        text: ! ""
+      resource:
+        heading: "Administración Recursos"
+        text: ""
+    sample_global_free:
+      text: ""
+      video:
+        text: "Aquí se puede ver la mayoría de las características de Gantt sobre todos los proyectos"
+        title: ""
+        video_id: UHgqfsrD59Q
+    sample:
+      close_label: "Cierre esta ventana y cargar datos de proyecto real"
+      header: ""
+      text: ""
+      video_label: ""
+      video:
+        text: ""
+        title: ""
+        video_id: UHgqfsrD59Q
+    title:
+      button_test: "Prueba"
+      day_zoom: "Días"
+      jump_today: "Línea Base hoy"
+      month_zoom: "Meses"
+      week_zoom: "Semanas"
+  heading_delay_popup: "Definir retraso en días"
+  heading_demo_feature_popup: ""
+  heading_easy_resources_issues: "Recursos"
+  link_easy_gantt_plugin: ""
+  text_demo_feature_popup: ""
+  text_easy_gantt_footer: "Redmine Resources powered by Aigroup"
+  permission_view_easy_resources: "Ver Recursos"
+  permission_edit_easy_resources: "Permitir cambios sobre elementos de recursos"

@@ -1,0 +1,6 @@
+# English strings go here for Rails i18n
+en:
+  label_holidays: "Holidays"
+  label_holiday_new: "New Holiday"
+  field_date: "Date"
+  field_year: "Year"

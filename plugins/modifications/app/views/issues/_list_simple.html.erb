@@ -1,0 +1,31 @@
+<% if issues && issues.any? %>
+<%= form_tag({}) do %>
+  <table class="list issues">
+    <thead><tr>
+    <th>#</th>
+    <th><%=l(:field_project)%></th>
+    <th><%=l(:field_tracker)%></th>
+    <th><%=l(:field_subject)%></th>
+    <th><%=l(:field_due_date_term)%></th>
+    </tr></thead>
+    <tbody>
+    <% for issue in issues %>
+    <tr id="issue-<%= h(issue.id) %>" class="hascontextmenu <%= cycle('odd', 'even') %> <%= issue.css_classes %>">
+      <td class="id">
+        <%= check_box_tag("ids[]", issue.id, false, :style => 'display:none;', :id => nil) %>
+        <%= link_to_issue(issue, :subject => false) %>
+      </td>
+      <td class="project"><%= link_to_project(issue.project) %></td>
+      <td class="tracker"><%= issue.tracker %></td>
+      <td class="subject">
+        <%= link_to(issue.subject.truncate(60), issue_path(issue)) %> (<%= issue.status %>)
+      </td>
+      <td class="due_date"><%= issue.due_date.to_s if  issue.due_date %></td>
+    </tr>
+    <% end %>
+    </tbody>
+  </table>
+<% end %>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

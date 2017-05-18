@@ -1,0 +1,13 @@
+<%= error_messages_for 'holiday' %>
+
+
+<!--[form:holiday]-->
+<div class="box tabular">
+  <p><%= f.date_field :date, :required => true%><%= calendar_for 'date' %></p>
+  <p><%= f.text_area :description, :required => false, :cols => 30, :rows=> 2 %></p>
+</div>
+<div style="clear:left;"></div>
+<!--[eoform:holiday]-->
+<%= javascript_tag do %>
+
+<% end %>

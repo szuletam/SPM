@@ -1,0 +1,42 @@
+<div class="contextual">
+<%= link_to(l(:label_project_template_new), new_project_path(:project => {:is_template => 1}), :class => 'icon icon-add') if User.current.allowed_to?(:add_project, nil, :global => true) %></div>
+
+<h2><%=l(:label_project_template_plural)%></h2>
+
+<%= form_tag(project_templates_path, :method => :get) do %>
+<fieldset><legend><%= l(:label_filter_plural) %></legend>
+
+<label for='name'><%= l(:field_name) %>:</label>
+<%= text_field_tag 'name', params[:name], :size => 30 %>
+<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
+<%= link_to l(:button_clear), project_templates_path, :class => 'icon icon-reload' %>
+</fieldset>
+<% end %>
+&nbsp;
+
+<div class="autoscroll">
+<table class="list">
+  <thead><tr>
+  <%= sort_header_tag('name', :caption => l(:field_name)) %>
+  <%= sort_header_tag('created_on', :caption => l(:field_created_on)) %>
+    <th></th>
+  </tr></thead>
+  <tbody>
+<% for project_template in @project_templates -%>
+  <tr class="<%= cycle("odd", "even") %>">
+  <td class="name"><%= link_to project_template.name, project_path(project_template) %></td>
+
+  <td class="created_on"><%= format_time(project_template.created_on) %></td>
+  <td class="buttons">
+	<%= link_to l(:label_create_project), {:controller => 'projects', :action => 'copy', :id => project_template.id, :project => {:is_template => 0}}, :class => "icon icon-add" %>
+    <%= delete_link project_template_path(project_template, :back_url => request.original_fullpath) %>
+  </td>
+  </tr>
+<% end -%>
+  </tbody>
+</table>
+</div>
+<span class="pagination"><%= pagination_links_full @project_template_pages, @project_template_count %></span>
+
+<% html_title(l(:label_project_template_plural)) -%>
+

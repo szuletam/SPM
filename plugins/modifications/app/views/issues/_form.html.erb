@@ -1,0 +1,117 @@
+<%= labelled_fields_for :issue, @issue do |f| %>
+<%= call_hook(:view_issues_form_details_top, { :issue => @issue, :form => f }) %>
+<%= hidden_field_tag 'form_update_triggered_by', '' %>
+
+<script type="text/javascript" charset="utf-8">
+  function validate_topics(){
+    var errors = false;
+    clear_all_errors();
+    $(".topic_subject, .issue_topic_subject, .issue_topic_project_id, .desition_topic_subject").each(function(){
+      var val = $(this).val().trim();
+
+      if(val == '' || val == undefined){
+
+        //get label
+        var label = '';
+        if($(this).hasClass( "topic_subject" )){
+          label = $(this).parent().children('label').text();
+          label = label.substring(0,label.length - 3 ) + ' <%=l('activerecord.errors.messages.blank')%>';
+        }else if($(this).hasClass("issue_topic_subject")){
+          label = '<%=l(:field_task) + ' ' + l('activerecord.errors.messages.blank')%>';
+        }else if($(this).hasClass("desition_topic_subject")){
+          label = '<%=l(:field_desition) + ' ' + l('activerecord.errors.messages.blank')%>';
+        }else if($(this).hasClass("issue_topic_project_id")){
+          label = '<%=l(:field_project_priority) + ' ' + l('activerecord.errors.messages.blank')%>';
+        }
+
+
+        add_error_style('issue-form',$(this).attr('id'), label);
+        errors = true;
+      }
+    });
+
+    $(".issue_topic_due_date, .desition_topic_due_date").each(function(){
+
+      var due_date_id = $(this).attr('id');
+
+      if( $('#issue_start_date').val() != undefined &&
+          $('#'+due_date_id).val() != undefined &&
+          $('#issue_start_date').val().trim() != '' &&
+          $('#'+due_date_id).val().trim() != '' &&
+          Date.parse($('#'+due_date_id).val()) &&
+          Date.parse($('#issue_start_date').val())
+      ){
+        var start_date = new Date($('#issue_start_date').val());
+        var due_date = new Date($('#'+due_date_id).val());
+        console.log(start_date, due_date, due_date < start_date);
+        if (due_date < start_date){
+          add_error_style('issue-form',due_date_id, '<%= l(:greater_than_start_date) %>');
+          errors = true;
+        }
+      }
+
+
+    });
+
+    if(!errors) $('#topic_counter').val($('.topic_counter').size());
+    return !errors;
+  }
+</script>
+
+<% if @issue.safe_attribute? 'is_private' %>
+<p id="issue_is_private_wrap">
+  <%= f.check_box :is_private, :no_label => true %><label class="inline" for="issue_is_private" id="issue_is_private_label"><%= l(:field_is_private) %></label>
+</p>
+<% end %>
+<% @issue_with_project = false if @issue_with_project.nil? %>
+<% if @issue.safe_attribute?('project_id') && (!@issue.new_record? || @project.nil? || @issue.copy? || @issue_with_project) %>
+<p><%= f.select :project_id, project_tree_options_for_select(@issue.allowed_target_projects, :selected => @issue.project), {:required => true},
+                :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(@project, @issue, @issue_with_project)}', this)" %></p>
+<% end %>
+
+<% if @issue.safe_attribute? 'tracker_id' %>
+<p><%= f.select :tracker_id, @issue.project.trackers.collect {|t| [t.name, t.id]}, {:required => true},
+                :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(@project, @issue)}', this)" %></p>
+<% end %>
+<% if @issue.safe_attribute?('subject') && @parent_issue  %>
+<p><%= f.text_field :subject, :value => @parent_issue.subject,   :size => 80, :maxlength => 255, :required => true %></p>
+<% elsif @issue.safe_attribute?('subject') && ! @issue.is_committee? %>
+<p><%= f.text_field :subject, :size => 80, :maxlength => 255, :required => true %></p>
+<% else %>
+<p><%= f.select :subject,Committee.all.collect {|p| [ raw("#{p.initial} #{p.name}"), p.name ] }, :include_blank => false, :required => true, :onclick => "get_committee_data()" %></p>
+<% end %>
+
+<% if @issue.safe_attribute? 'description' %>
+<p>
+  <%= f.label_for_field :description, :required => @issue.required_attribute?('description') %>
+  <%= link_to_function content_tag(:span, l(:button_edit), :class => 'icon icon-edit'), '$(this).hide(); $("#issue_description_and_toolbar").show()' unless @issue.new_record? %>
+  <%= content_tag 'span', :id => "issue_description_and_toolbar", :style => (@issue.new_record? ? nil : 'display:none') do %>
+    <%= f.text_area :description,
+                   :cols => 60,
+                   :rows => (@issue.description.blank? ? 2 : [[2, @issue.description.length / 25].max, 50].min),
+                   :accesskey => accesskey(:edit),
+                   :class => 'wiki-edit',
+                   :no_label => true %>
+  <% end %>
+</p>
+<%#= wikitoolbar_for 'issue_description' %>
+<% end %>
+
+<%= render :partial => 'issues/committee' %>
+
+<div id="attributes" class="attributes">
+  <%= render :partial => 'issues/attributes' %>
+</div>
+
+<%= call_hook(:view_issues_form_details_bottom, { :issue => @issue, :form => f }) %>
+<% end %>
+
+<% heads_for_wiki_formatter %>
+
+<%= javascript_tag do %>
+$(document).ready(function(){
+  $("#issue_tracker_id, #issue_status_id").each(function(){
+    $(this).val($(this).find("option[selected=selected]").val());
+  });
+});
+<% end %>

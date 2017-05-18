@@ -1,0 +1,9 @@
+<% unless @time_entry.valid? %>
+  $("#errorExplanation").html('<%= raw(escape_javascript(@time_entry.errors.full_messages.join(', '))) %>');
+  $("#errorExplanation").show();
+<% else %>
+  $("#errorExplanation").html('');
+  $("#errorExplanation").hide();
+  $('#table').html('<%= escape_javascript(render :partial => 'table') %>');
+  $("#work-time-popup").dialog("close");
+<% end %>

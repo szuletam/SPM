@@ -1,0 +1,4 @@
+<%= l(:text_issue_added, :id => "##{@issue.spmid ? @issue.spmid : Issue.find(@issue.id).spmid}", :author => @issue.author) %>
+
+----------------------------------------
+<%= render :partial => 'issue', :formats => [:text], :locals => { :issue => @issue, :users => @users, :issue_url => @issue_url } %>

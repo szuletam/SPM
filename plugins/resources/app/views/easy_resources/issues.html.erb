@@ -1,0 +1,203 @@
+<%= title(l(:heading_easy_resources_issues)) %>
+<div id="easy_gantt" class="<%= defined?(EasyExtensions) ? 'easy' : 'redmine' %> gantt easy-content-page clear">
+  <%#= render @query, :easy_query_name => l(:heading_easy_resources_issues), :wrapper_class => '' %>
+  <%= render :partial => 'filters' %>
+  <div id="supertop_panel" class="clear"></div>
+  <!--<div id="easy_gantt_menu" class="easy-gantt-menu clear">
+    <div class="clear">
+      <div class="push-left">
+        <% if 1 == 0 %>
+        <span id="button_test" class="selected">
+          <%= easy_resources_js_button(l(:button_test)) %> 
+        </span>
+        <% end %>
+
+        <span id="button_jump_today">
+            <%= easy_resources_js_button(l(:label_today).capitalize, :title => l(:jump_today, :scope => [:easy_gantt, :title]), :icon => 'icon-calendar') %>
+        </span>
+        <% {'day' => 'calendar-day', 'week' => 'calendar-week', 'month' => 'calendar-month'}.each do |x, i| %>
+          <div id="button_<%= x %>_zoom" class="menu-item">
+            <%= easy_resources_js_button(:"#{x}_zoom", :icon => "icon-#{i}") %>
+          </div>
+        <% end %>
+      </div>
+      <div class="push-right">
+        <% menu_items_for(:easy_gantt, @project) do |node| %>
+          <% opts = node.html_options.dup; opts[:url] = (node.url.is_a?(Proc) ? node.url.call(@project) : node.url) %>
+          <div id="button_<%= node.name %>" class="menu-item">
+            <% if opts.delete(:trial) %>
+              <%= easy_resources_help_button(node.name, node.caption, opts) %>
+            <% else  %>
+              <%= easy_resources_js_button(node.caption, opts) %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>-->
+    <%= call_hook(:view_easy_gantts_issues_toolbars, {:project => @project}) %>
+
+  </div>
+
+  <!-- This is container for gantt-->
+  <div id="gantt_cont" style="width:100%; height:600px" class="clear"></div>
+  <!-- End container for gantt-->
+
+  <div id="easy_gantt_footer">
+
+    <div id="gantt_footer_buttons" class="easy-gantt-menu">
+      <p id="button_print">
+        <%= easy_resources_js_button(l(:button_print), :icon => 'icon-print') %>
+      </p>
+
+    </div>
+    <!--<p>
+      <%#= link_to(l(:text_easy_gantt_footer), l(:link_easy_gantt_plugin), :target => '_blank') unless defined?(EasyExtensions) %>
+    </p>-->
+
+  </div>
+</div>
+<% heads_for_wiki_formatter %>
+<%= content_for :header_tags do %>
+  <script type="text/javascript">
+    window.ysy = window.ysy || {};
+    ysy.settings = {
+      easyRedmine: <%= defined?(EasyExtensions) ? true : false %>,
+      <% if @project %>
+      //project: {"id": "<%= @project.id %>", "name": "<%= @project.name.html_safe %>"},
+      <% end %>
+      apiKey: "<%= User.current.api_key %>",
+      dateFormat: '<%=j Setting.date_format %>',
+      workingWeekDays: <%= Array(1..5).to_json %>,
+
+      withSample: <%= 0 %>,
+      holidays: <%= raw Holiday.where("YEAR(date) BETWEEN #{Date.today.year - 1} AND #{Date.today.year + 1}").all.map{|h| "#{h.date.strftime("%Y-%m-%d")}"}%>,
+      paths: {
+        rootPath: '<%= home_path %>',
+        issuePath: "<%= issues_path %>",
+        initialDataPath: '',
+       <% if false #@project %>
+        mainGantt: "<%= issues_easy_resources_path(@project, :format => 'json', :key => User.current.api_key)%>",
+       <% else %>
+        mainGantt: "<%= projects_easy_resources_path(:format => 'json', :key => User.current.api_key) %>",
+       <% end %>
+        projectGantt: "{{{root}}}projects/{{projectID}}/easy_resources/issues.json{{apiKey}}",
+        issuePOST: "<%= issues_path %>.json{{apiKey}}",
+        issuePUT: "<%= issues_path %>/{{issueID}}.json{{apiKey}}",
+        issueDELETE: "<%= issues_path %>/{{issueID}}.json{{apiKey}}",
+        relationPOST: "{{{root}}}issues/{{sourceID}}/relations.json{{apiKey}}",
+        relationPUT: "{{{root}}}projects/{{projectID}}/easy_resources/relation/{{relaID}}.json{{apiKey}}",
+        relationDELETE: "{{{root}}}relations/{{relaID}}.json{{apiKey}}",
+        versionPOST: "{{{root}}}projects/{{projectID}}/versions.json{{apiKey}}",
+        versionPUT: "{{{root}}}versions/{{versionID}}.json{{apiKey}}",
+		<% if @project %>
+        sample_data: "<%= issues_easy_gantt_path(@project, :format => 'json', :key => User.current.api_key)%>",
+        <% else %>
+        sample_data: "<%= projects_easy_gantt_path(:format => 'json', :key => User.current.api_key) %>",
+        <% end %>
+      },
+      labels: {
+        buttons: {
+          button_delete: '<%= l(:button_delete) %>',
+          button_submit: '<%= l(:button_submit) %>',
+          button_cancel: '<%= l(:button_cancel) %>',
+          button_reload: '<%= l(:reload, :scope => [:easy_gantt, :button]) %>',
+          button_save: '<%= l(:button_save) %>'
+        },
+        sample_text: '<%= l(:text, :scope => [:easy_gantt, :sample]).html_safe %>',
+        sample_global_free_text:'<%= l(:text, :scope => [:easy_gantt, :sample_global_free]).html_safe %>',
+        <!--<%# t(:soon, :scope => [:easy_gantt]).keys.each do |c| %>-->
+//        soon_<%#= c %>: {
+//          title: "<%#= l(:heading, :scope => [:easy_gantt, :soon, c]) %>",
+//          text: "<%#=j l(:text, :scope => [:easy_gantt, :soon, c]).html_safe %>"
+//        },
+        <!--<%# end %>-->
+        date: {
+          month_full: <%=raw l('date.month_names').compact.to_json %>,
+          month_short: <%=raw l('date.abbr_month_names').compact.to_json %>,
+          day_full: <%=raw l('date.day_names').compact.to_json %>,
+          day_short: <%=raw l('date.abbr_day_names').compact.to_json %>
+        },
+        link_dir: {
+          link_start: "<%= l(:link_start, :scope => [:easy_gantt, :link_dir]) %>",
+          link_end: "<%= l(:link_end, :scope => [:easy_gantt, :link_dir]) %>"
+        },
+        errors: <%=raw l('activerecord.errors.messages').compact.to_json %>,
+        errors2:{
+          unsaved_parent:'<%= l(:unsaved_parent, :scope => [:easy_gantt, :errors]) %>',
+          loop_link:'<%= l(:loop_link, :scope => [:easy_gantt, :errors]) %>',
+          duplicate_link:'<%= l(:duplicate_link, :scope => [:easy_gantt, :errors]) %>'
+        },
+        gateway:{
+          sendFailed:"<%= l(:send_failed, :scope => [:easy_gantt, :gateway]) %>",
+          allSended:"<%= l(:notice_successful_update) %>"
+        }
+      }
+    };
+    $(document).ready(function () {
+      $("p.nodata").remove()
+    })
+  </script>
+  <script type="text/javascript">
+    window.ysy = window.ysy || {};
+    ysy.view = ysy.view || {};
+    ysy.view.templates = $.extend(ysy.view.templates,{
+    TaskTooltip:
+      '<div class="name"><b>{{name}}</b></div>\
+      <div class="start_date"><%= l(:field_start_date) %>: <strong>{{start_date}}</strong></div>\
+      {{#end_date}}\
+      <div class="end_date"><%= l(:field_due_date) %>: <strong>{{end_date}}</strong></div>\
+      {{/end_date}}\
+	  {{#done_ratio}}\
+      <div class="done_ratio"><%= l(:field_done_ratio) %>: <strong>{{done_ratio}}%</strong></div>\
+      {{/done_ratio}}\
+	  {{#estimated}}\
+      <div class="estimated"><%= l(:field_estimated_hours) %>: <strong>{{estimated}} <%= l(:label_hours) %></strong></div>\
+      {{/estimated}}\
+      {{#assignee}}\
+      <div class="assignee"><%= l(:field_assigned_to) %>: <strong>{{assignee}}</strong></div>\
+      {{/assignee}}\
+      {{#problems}}\
+      {{#overmilestone}}\
+      <div class="tooltip-problem"><%= l(:overmile, :scope => [:easy_gantt, :errors]) %></div>\
+      {{/overmilestone}}\
+      {{#too_short}}\
+      <div class="tooltip-problem"><%= l(:too_short, :scope => [:easy_gantt, :errors]) %></div>\
+      {{/too_short}}\
+      {{/problems}}\
+    ',
+    LinkConfigPopup:
+      "<h3 class='title'><%= l(:heading_delay_popup) %></h3> <label for='link_delay_input'><%= l(:field_delay) %>:</label><input id='link_delay_input' type='number' min='0' value='{{delay}}' size='3'><hr>\
+      <a id='link_delete' class='icon icon-del button'  href='javascript:void(0)'><%= l(:button_delete) %></a>\
+      <a id='link_close' class='icon icon-save button-positive'  href='javascript:void(0)' style='float:right'><%= l(:button_submit) %></a>\
+    ",
+    SuperPanel:'',
+    Button:'<span class="button {{active}}" title="{{title}}"><a id="{{elid}}_button_in" class="gantt_button{{icon}}" href="javascript:void(0)" >{{name}}</a></span>',
+    LinkButton:'<a class="{{css}}" title="{{title}}" href="javascript:void(0)">{{name}}</a>',
+    easy_unimplemented:'<h3 class="title">{{modal.title}}</h3><span>{{{modal.text}}}</span>',
+    video_modal:'',
+    video_modal_global:''
+    });
+  </script>
+  <%= stylesheet_link_tag(:dhtmlxgantt, :plugin => 'resources', :media => 'all') %>
+  <%= stylesheet_link_tag(:easy_gantt, :plugin => 'resources', :media => 'all') %>
+  <%= javascript_include_tag(:dhtmlxgantt, :plugin => 'resources') %>
+  <%= javascript_include_tag(:dhtmlxgantt_marker, :plugin => 'resources') %>
+  <%= javascript_include_tag(:easy_gantts, :plugin => 'resources') %>
+  <%= javascript_include_tag(:data, :plugin => 'resources') %>
+  <%= javascript_include_tag(:loader, :plugin => 'resources') %>
+  <%= javascript_include_tag(:saver, :plugin => 'resources') %>
+  <%= javascript_include_tag(:logger, :plugin => 'resources') %>
+  <%= javascript_include_tag(:test, :plugin => 'resources') %>
+  <%= javascript_include_tag(:widget, :plugin => 'resources') %>
+  <%= javascript_include_tag(:panel_widget, :plugin => 'resources') %>
+  <%= javascript_include_tag(:gantt_widget, :plugin => 'resources') %>
+  <%= javascript_include_tag(:libs, :plugin => 'resources') %>
+  <%= javascript_include_tag(:view, :plugin => 'resources') %>
+  <%= javascript_include_tag(:history, :plugin => 'resources') %>
+  <%= javascript_include_tag(:dhtml_modif, :plugin => 'resources') %>
+  <%= javascript_include_tag(:dhtml_addons, :plugin => 'resources') %>
+  <%= javascript_include_tag(:dhtml_rewrite, :plugin => 'resources') %>
+  <%= javascript_include_tag(:background, :plugin => 'resources') %>
+<% end %>
+
+<%= call_hook(:view_easy_gantts_issues_bottom, {:project => @project}) %>

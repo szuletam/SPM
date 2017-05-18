@@ -1,0 +1,7 @@
+<%= l(:mail_body_whining, :count => @issues.size, :days => @days) %>:
+
+<% @issues.each do |issue| -%>
+* <%= "#{issue.project} - #{issue.tracker} ##{issue.spmid}: #{issue.subject} con Fecha fin/Plazo #{issue.due_date}" %>
+<% end -%>
+
+<%= @issues_url %>

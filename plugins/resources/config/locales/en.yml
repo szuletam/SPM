@@ -1,0 +1,15 @@
+# English strings go here for Rails i18n
+en:
+  label_user_calendars: "Calendars"
+  label_user_calendar_plural: "Calendars"
+  field_user_calendar_hours: "Calendar Hours"
+  label_user_calendars_new: "New Calendar"
+  field_availability: "Availability"
+  error_user_calendar_hours: "You must select at least one hour"
+  permission_issue_planning_simulation: "Simulate Issue planning"
+  setting_default_calendar: "Default Calendar"
+  error_no_default_calendar_selected: "Has not selected a default calendar, please consult your system administrator"
+  error_user_calendars_no_exist: "There are no schedules to assign the task force, please consult your system administrator"
+  field_user_calendar_id: "Calendar"
+  label_planning_simulate: "Issue Planning Simulate"
+  label_update_issue_dates: "Update Issues"

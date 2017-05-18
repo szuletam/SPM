@@ -1,0 +1,7 @@
+# English strings go here for Rails i18n
+en:
+  label_advanced: "Advanced"
+  label_advanced_porcent: "% Advanced"
+  label_weight: "Weight"
+  label_delayed: "Delayed"
+  label_delayed_porcent: "% Delayed"

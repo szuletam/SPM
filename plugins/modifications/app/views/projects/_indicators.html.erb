@@ -1,0 +1,105 @@
+<% 
+  indicator = @project.indicator
+  versions = @project.versions_with_indicators
+%>
+
+<div class="versions box">
+  <h3><%= l(:label_project_done_ratio) %></h3>
+  <h4><%= l(:label_project_total) %></h4>
+  <div class="autoscroll">
+	<table class="list issues" style="font-size: 9px !important; padding: 0px !important; text-align: center !important;">
+	  <thead>
+		<tr>
+		  <th style="width: 17%;">
+			<%= l(:label_expected) %>
+		  </th>
+		  <th style="width: 17%;">
+			<%= l(:label_realized) %>
+		  </th>
+		  <th style="width: 17%;">
+			<%= l(:label_fulfillment) %>
+		  </th>
+			<% unless @project && (@project.is_committee? || @project.is_strategy? )%>
+		  	<th style="width: 8%;">
+				<%= l(:label_planned) %>
+		  	</th>
+		  	<th style="width: 8%;">
+				<%= l(:label_executed) %>
+		  	</th>
+			<% end %>
+		  <th style="width: 16.5%;">
+			<%= l(:label_start) %>
+		  </th>
+		  <th style="width: 16.5%;">
+			<%= l(:label_due) %>
+		  </th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+		  <td class="expected">
+			<%= progress_bar(indicator.expected.to_f.round(2), :width => '60px', :legend => "#{indicator.expected.to_f.round(2)}%")  %>
+		  </td>
+		  <td class="realized">
+			<%= progress_bar(indicator.realized.to_f.round(2), :width => '60px', :legend => "#{indicator.realized.to_f.round(2)}%") %>
+		  </td>
+		  <td class="fulfillmen">
+			<%= progress_bar(indicator.fulfillmen.to_f.round(2), :width => '60px', :legend => "#{indicator.fulfillmen.to_f.round(2)}%") %>
+		  </td>
+			<% unless @project && (@project.is_committee? || @project.is_strategy? )%>
+		  	<td>
+				<%= indicator.total_hours.to_f.round(2) %>
+		  	</td>
+		  	<td>
+				<%= indicator.all_hours.to_f.round(2) %>
+		  	</td>
+			<% end %>
+		  <td>
+			<%= indicator.mindate %>
+		  </td>
+		  <td>
+			<%= indicator.maxdate %>
+		  </td>
+		</tr>
+		<% if versions.empty? %>
+		  <tr>
+			<td class="nodata" colspan="7"><%= l(:label_no_data) %></td>
+		  </tr>
+		<% else %>
+		  <% versions.each do |version| %>
+			<% version_indicator = version.version_indicator %>
+			  <tr>
+				<td colspan="7" style="text-align: left; font-size: 11px !important;"><%= link_to version.name, {:controller => 'versions', :action => 'show', :id => version.id}, :class => '' %></td>
+			  </tr>
+			  <tr>
+			  <td class="expected">
+				<%= progress_bar(version_indicator.expected.to_f.round(2), :width => '60px', :legend => "#{version_indicator.expected.to_f.round(2)}%")  %>
+			  </td>
+			  <td class="realized">
+				<%= progress_bar(version_indicator.realized.to_f.round(2), :width => '60px', :legend => "#{version_indicator.realized.to_f.round(2)}%") %>
+			  </td>
+			  <td class="fulfillmen">
+				<%= progress_bar(version_indicator.fulfillmen.to_f.round(2), :width => '60px', :legend => "#{version_indicator.fulfillmen.to_f.round(2)}%") %>
+			  </td>
+			  <td>
+				<%= version_indicator.total_hours.to_f.round(2) %>
+			  </td>
+			  <td>
+				<%= version_indicator.all_hours.to_f.round(2) %>
+			  </td>
+			  <td>
+				<%= version_indicator.mindate %>
+			  </td>
+			  <td>
+				<%= version_indicator.maxdate %>
+			  </td>
+			</tr>
+		  <% end %>
+		<% end %>
+	  </tbody>
+	</table>
+  </div>
+</div>
+
+
+

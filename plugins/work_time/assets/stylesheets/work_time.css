@@ -1,0 +1,101 @@
+.holiday-cell{
+	background-color: #FEEFB3;
+}
+
+.non-working-cell{
+	background-color: #DFF2BF;
+}
+
+.not-leaf-cell{
+	background-color: #EEEEEE;
+	cursor: default !important;
+}
+
+.today-cell{
+	background-color: #FFDAB9;
+}
+
+.work-time td.td-project{
+	background-color: #cfcfcf;
+	color: #484848;
+}
+
+.work-time td.td-project a{
+	color: #484848;
+	font-weight: bold;
+}
+
+.work-time td div.tooltip{
+	font-size: 11px;
+}
+
+
+.work-time th.th-day div{
+	font-size: 12px;
+}
+
+table.list td {
+	vertical-align: middle;
+}
+
+.work-time td.td-total-day{
+	font-size: 11px;	
+}
+
+.work-time td.td-total-issue{
+	width: 5%;
+}
+
+.td-active{
+	text-decoration: underline;
+}
+
+.td-day{
+	cursor: pointer; 
+}
+
+.work-time td.td-day, .work-time td.td-total-issue{
+	font-size: 11px;
+}
+
+.work-time th.project {
+	width: 20%;
+}
+
+.work-time th.issue {
+	width: 20%;
+}
+
+.work-time th.issue span{
+	margin-left: 5px;
+}
+
+
+.work-time td.issue, .work-time td.project {
+	font-size: 10px;
+	text-align:left;
+}
+
+@media (max-width: 1200px){
+	#table{
+		overflow: scroll;
+	}
+}
+
+@media (min-width: 899px){
+	.box {
+		padding: 0px;
+	}
+
+	.tabular label{
+		margin-left: -160px;
+	}
+
+	.tabular p{
+		padding-left: 130px;
+	}
+	
+	.tabular input, .tabular select {
+		max-width: 90%;
+	}
+}

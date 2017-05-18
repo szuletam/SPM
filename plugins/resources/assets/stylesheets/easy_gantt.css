@@ -1,0 +1,351 @@
+@media print{
+    .content-title{
+        display:none;
+    }
+    @page {size: landscape}
+}
+.gantt_container{
+    display: inline-block;
+}
+.gantt_cont{
+    display: inline-block;
+}
+#easy_gantt .weekend {
+    background-color: #eeeeee;
+}
+#easy_gantt .first-date {
+    border-left: 1px solid #aaaaff;
+}
+
+#easy_gantt {
+    position: relative;
+}
+
+#easy_gantt .gantt_selected .gantt_task_cell.weekend {
+    background-color: #F4E88A;
+}
+
+.gantt_task_content {
+    overflow: visible;
+    /*color:black;*/
+}
+/*#top_panel{*/
+/*height:35px;*/
+/*margin-top: 15px;*/
+/*margin-bottom: 10px;*/
+/*}*/
+/*.gantt_task_line.easy{*/
+/*background-color: greenyellow;*/
+/*}*/
+/*.gantt_task_line.high{*/
+/*background-color: red;*/
+/*}*/
+/*.gantt_task_line:hover .gantt_task_content {*/
+/*box-shadow: 0 0 10px 0 #11a0ff;*/
+/*}*/
+/*select{*/
+/*width:auto;*/
+/*min-width: 0;*/
+/*max-width: none;*/
+/*}*/
+/*.milestone-type a,.milestone-type .gantt_tree_content{*/
+/*font-style: italic;*/
+/*font-weight: bold;*/
+/*color: #aa0000;*/
+/*}*/
+/*.gantt_marker.start,.gantt_marker.end{*/
+/*background-color: rgba(0,255,0,0.4);*/
+/*}*/
+
+.gantt_bars_area.no_task_controls .gantt_link_control div{
+    display: none !important;
+}
+
+.gantt_bars_area.no_task_controls .gantt_task_drag, .gantt_bars_area.no_task_controls .gantt_task_progress_drag {
+    display: none !important;
+}
+
+/*.type-relates .gantt_line_wrapper div,.type-relates .gantt_link_arrow{*/
+/*background-color: lightgreen;*/
+/*border-color: lightgreen;*/
+/*}*/
+/*/!*.type-precedes .gantt_line_wrapper div,.type-precedes .gantt_link_arrow{*/
+/*background-color: lightgreen;*/
+/*border-color: lightgreen;*/
+/*}*!/*/
+.wrong .gantt_line_wrapper div,.wrong .gantt_link_arrow, #easy_gantt.redmine .button-important {
+    /*background-color: #d94838;*/
+    border-color: #d94838;
+    /*border-color: #a52d20;*/
+}
+.wrong.gantt_task_link:hover .gantt_line_wrapper div {
+    box-shadow: 0 0 5px 0 #a52d20;
+}
+#gantt_link_dialog {
+    border: 1px #000 solid;
+    background-color: #fff;
+    width: 200px;
+    position: absolute;
+    padding: 10px;
+    z-index: 2;
+}
+
+#gantt_link_dialog input[type="number"] {
+    width: 38px;
+}
+
+#task-tooltip {
+    position: absolute;
+    display: none;
+    background-color: #ffff80;
+    border: 1px solid #888840;
+    padding: 5px;
+    z-index: 10;
+}
+#easy_gantt.gantt .gantt_task_line.overdue {
+    background-color: #d94838;
+}
+
+.gantt_task_progress {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+.tooltip-problem {
+    color: #d94838;
+}
+
+#easy_gantt.redmine .button {
+    display: inline-block;
+    /*font-size: 1.2em;*/
+    padding: 8px 10px;
+}
+#easy_gantt.redmine .button.icon {
+    padding: 3px 8px 3px 23px;
+	margin-bottom: 2px;
+    background-position-x: 5px;
+}
+#easy_gantt.redmine .button-important {
+    color: #fff;
+}
+#easy_gantt.redmine .gantt_button {
+    margin: 0 5px;
+	background-repeat: no-repeat;
+}
+#easy_gantt.redmine .gantt_button.icon-edit {
+    background-image: url('../../../images/edit.png');
+}
+#easy_gantt.redmine .gantt_button.icon-calendar-week {
+    background-image: url('../../../images/magnifier.png');
+}
+#easy_gantt.redmine .gantt_button.icon-calendar-day {
+    background-image: url('../../../images/zoom_in.png');
+}
+#easy_gantt.redmine .gantt_button.icon-calendar-month {
+    background-image: url('../../../images/zoom_out.png');
+}
+#easy_gantt.redmine .gantt_button.icon-calendar {
+    background-image: url('../../../images/calendar.png');
+}
+#easy_gantt.redmine .gantt_button.icon-print {
+    background-image: url('../../../images/document.png');
+}
+#easy_gantt.redmine .gantt_button.icon-plugin {
+    background-image: url('../../../images/plugin.png');
+}
+#easy_gantt.redmine .gantt_button.icon-back {
+    background-image: url('../../../images/cancel.png');
+}
+#easy_gantt.redmine .active {
+    /*background-color: #407FF7;*/
+	color: #000 !important;
+    border-color: #000;
+	text-shadow: none;
+}
+#easy_gantt.redmine a.active {
+    color: #fff;
+}
+#easy_gantt.easy a.active {
+    background: #d94838;
+    border-color: #a52d20;
+    color: #fff;
+}
+#easy_gantt a.disabled {
+    opacity: 0.25;
+    color: #484848;
+    font-weight: lighter;
+}
+
+#easy_gantt a.disabled:hover {
+    text-decoration: none;
+    cursor: not-allowed;
+}
+#easy_gantt.redmine a.button-positive {
+    background-color: #4ebf67;
+    border-radius: 2px;
+    border: 1.3px solid rgb(51, 141, 71);
+    color: #ffffff;
+    padding: 8px 16px;
+}
+
+#easy_gantt.redmine a.button-positive.disabled {
+    background: inherit;
+    color: inherit;
+    border-color: transparent;
+}
+#easy_gantt.redmine #link_delay_input {
+    width: auto;
+}
+.milestone-type .gantt_cell{
+    border-right:0;
+}
+#easy_gantt.redmine .push-left {
+    float: left;
+}
+#easy_gantt.redmine .push-right {
+    float: right;
+    text-align: right
+}
+#easy_gantt.redmine #easy_gantt_footer p {
+    text-align: center;
+}
+span.color-square {
+    width:15px;
+    height:15px;
+    display: inline-block;
+    border: 1px solid black;
+}
+.gantt_cell {
+    padding:0;
+}
+.gantt_grid {
+    border-right-width: 2px;
+}
+.gantt_alldirarrow:before{
+    width:18px;
+    height:100%;
+    /*content: '\21F5';*/
+    content: '\21B3';
+    font-size: 20px;
+    font-weight: bold;
+    opacity:0.25;
+}
+/*.gantt_row:hover.gantt_drag_handle:not(){*/
+    /*opacity:0;*/
+/*}*/
+.gantt_row:hover .gantt_drag_handle:before{
+    content: '\21F5';
+    opacity:0.5;
+}
+.gantt_row .gantt_drag_handle:hover:before{
+    opacity:1;
+    content: '\21F5';
+}
+.gantt_grid_data .gantt_row.gantt_drag_to_allowed{
+    background-color: #FFEB59;
+}
+.gantt_grid_data .gantt_row.gantt_drag_hover{
+    background-color: #eeeeee;
+}
+.gantt_grid_data .gantt_row.gantt_drag_to_allowed.gantt_drag_hover{
+    background-color: #FBCF00;
+}
+/*#sample_cont.flash {*/
+    /*background-image: none;*/
+/*}*/
+#supertop_panel{
+    position: relative;
+}
+#sample_cont{
+    font-size: 14px;
+}
+#easy_gantt .easy-gantt-menu p, #easy_gantt .easy-gantt-menu div.menu-item {
+    display: inline-block;
+}
+#easy_gantt_menu .action-buttons-with-submenu {
+    display: inline;
+}
+.modal_video {
+    margin-left: 10px;
+    margin-top: 5px;
+}
+.gantt_drag_marker {
+    z-index:1;
+}
+.youtube-icon {
+    background-image: url('../images/yt.png');
+    padding-left: 28px;
+}
+
+.gantt_container .gantt_grid_column_resize_wrap,.gantt_grid_columns_resize_wrap {
+    top:0;
+    height: 100%;
+    cursor: col-resize;
+    position: absolute;
+    /*background-color: red;*/
+    width: 12px
+}
+/*.gantt_task_line.parent{*/
+    /*background-color: yellow;*/
+/*}*/
+#sample_close_button {
+    background-color: #cd0a0a;
+    color: white;
+    width: auto;
+    height: auto;
+    float: none;
+    display: inline;
+    margin-left: 25px;
+    padding: 8px 10px 8px 25px;
+    background-position-x: 5px;
+}
+
+/* Easy Redmine < 2016 */
+#easy_gantt.easy .push-left {
+    float: left;
+}
+#easy_gantt.easy .push-right {
+    float: right;
+    text-align: right
+}
+#easy_gantt.easy #easy_gantt_menu p[id^="button_"], #easy_gantt.easy #easy_gantt_menu div[id^="button_"]  {
+    display: inline-block;
+}
+#easy_gantt.easy .disabled a {
+    opacity: 0.5;
+}
+#gantt_cont .gantt_grid_data div[task_id="empty"] div{
+    display:none;
+}
+#gantt_cont .gantt_bars_area div[task_id="empty"]{
+    display:none;
+}
+#gantt_markers{
+    position:absolute;
+}
+.gantt_task_line.planned{
+    z-index:1;
+}
+ .gantt_link_tooltip.gantt_link_deny{
+    background-color: #ff6666;
+}
+
+@media print {
+    #easy_servicebar{
+        display: none;
+    }
+    #easy_gantt_menu{
+        display: none;
+    }
+    #easy_gantt_footer{
+        display: none;
+    }
+    .flash{
+        display:none;
+    }
+}
+.gantt_grid_superitem{
+    font-weight: bold;
+    /*font-style: italic;*/
+    height:100%;
+    width: 100%;
+    vertical-align: top;
+}

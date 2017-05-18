@@ -1,0 +1,104 @@
+api.easy_gantt_data do
+  api.start_date @start_date
+  api.end_date @end_date
+  api.array(:permissions) do
+    %w(view_easy_resources edit_easy_resources manage_issue_relations add_issues edit_issues manage_versions show_baselines manage_baselines).each do |perm|
+      #api.permission(:name => perm, :value => User.current.allowed_to?(perm.to_sym, @project, :global => true))
+    end
+  end
+
+  api.array :columns do
+    @query.columns.each do |c|
+      api.column do
+        api.name c.name
+        api.title c.caption
+      end
+    end
+  end
+  api.array :projects do
+    #@projects.each do |project|
+    @users.each do |user|
+      api.project do
+        api.id user.id
+        api.name user.name
+        api.start_date @user_dates[user.id][:start_date] rescue nil
+        api.due_date @user_dates[user.id][:due_date] rescue nil
+        api.parent_id nil
+        api.is_baseline false
+        api.has_children true
+				api.curr_project (@project.nil? ? 0 : @project.id)
+      end
+    end
+  end
+  api.array :issues do
+    @entities.each do |issue|
+      call_hook :view_easy_gantt_issue_top, :api => api, :project => @project, :issue => issue, :query => @query
+      api.issue do
+        api.id issue.id
+        api.name issue.subject
+        api.start_date issue.start_date
+        api.due_date issue.due_date
+        api.estimated_hours issue.estimated_hours
+        api.done_ratio issue.done_ratio
+        css = issue.css_classes
+        css << ' issue-overdue' if issue.overdue?
+        api.css css
+        api.fixed_version_id issue.project_id.to_s + "-" + issue.assigned_to_id.to_s
+        api.overdue issue.overdue?
+        api.parent_issue_id issue.parent_id
+        api.project_id issue.assigned_to_id
+        api.assigned_to_id issue.assigned_to_id
+
+        api.array :columns do
+          @query.columns.each do |c|
+            api.column do
+              api.name c.name
+              api.value c.value(issue).to_s
+            end
+          end
+        end
+        call_hook :view_easy_gantt_issue_inner_bottom, :api => api, :project => @project, :issue => issue, :query => @query
+      end
+      call_hook :view_easy_gantt_issue_bottom, :api => api, :project => @project, :issue => issue, :query => @query
+    end
+  end
+
+  api.array :relations do
+    @relations.each do |rel|
+      api.relation do
+        api.id rel.id
+        api.source_id rel.issue_from_id
+        api.target_id rel.issue_to_id
+        api.type rel.relation_type
+        api.delay rel.delay.to_i
+      end
+
+    end
+  end
+
+  api.array :versions do
+    @fixed_versions.each do |version|
+      api.version do
+        api.id version.id.to_s + "-" + params[:project_id]
+        api.name version.name
+        api.start_date @user_dates[params[:project_id].to_i][:project][version.id][:start_date].nil? ? nil : @user_dates[params[:project_id].to_i][:project][version.id][:start_date]
+        if !@user_dates[params[:project_id].to_i][:project][version.id][:due_date].nil? && ! @user_dates[params[:project_id].to_i][:project][version.id][:max_date].nil?
+            if @user_dates[params[:project_id].to_i][:project][version.id][:due_date] < @user_dates[params[:project_id].to_i][:project][version.id][:max_date]
+                api.end_date @user_dates[params[:project_id].to_i][:project][version.id][:max_date]
+            else
+              api.end_date @user_dates[params[:project_id].to_i][:project][version.id][:due_date].nil? ? nil : @user_dates[params[:project_id].to_i][:project][version.id][:due_date]
+            end
+        elsif ! @user_dates[params[:project_id].to_i][:project][version.id][:due_date].nil?
+          api.end_date @user_dates[params[:project_id].to_i][:project][version.id][:due_date].nil? ? nil : @user_dates[params[:project_id].to_i][:project][version.id][:due_date]
+        elsif ! @user_dates[params[:project_id].to_i][:project][version.id][:max_date].nil?
+          api.end_date @user_dates[params[:project_id].to_i][:project][version.id][:max_date].nil? ? nil : @user_dates[params[:project_id].to_i][:project][version.id][:max_date]
+        else
+          api.end_date nil
+        end
+
+        api.project_id version.user_id
+      end
+    end
+  end
+
+end

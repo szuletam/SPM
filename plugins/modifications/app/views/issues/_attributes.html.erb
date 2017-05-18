@@ -1,0 +1,136 @@
+<%= labelled_fields_for :issue, @issue do |f| %>
+
+<div class="splitcontent">
+<div class="splitcontentleft">
+
+<% if @issue.safe_attribute?('assigned_to_id') && !@issue.is_desition? %>
+<p><%= f.select :assigned_to_id, principals_options_for_select(@issue.assignable_users, @issue.assigned_to), :include_blank => true, :required => (@issue.is_committee? ? true :@issue.required_attribute?('assigned_to_id')), :label => (@issue.is_committee? ? l(:field_notes_by) : l(:field_assigned_to)) %></p>
+<% end %>
+
+<% if @issue.safe_attribute?('status_id') && @allowed_statuses.present? %>
+    <p><%= f.select :status_id, (@allowed_statuses.collect {|p| [p.name, p.id]}), {:required => true},
+                    :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(@project, @issue)}', this)" %></p>
+    <%= hidden_field_tag 'was_default_status', @issue.status_id, :id => nil if @issue.status == @issue.default_status %>
+<% else %>
+    <p style="<%= (@issue.is_committee?) ? 'display:none' : "" %>"><label><%= l(:field_status) %></label> <%= @issue.status %></p>
+<% end %>
+
+<% if @issue.safe_attribute?('category_id') && @issue.project.issue_categories.any? %>
+<p style="<%= (@issue.is_committee?) ? 'display:none' : "" %>"><%= f.select :category_id, (@issue.project.issue_categories.collect {|c| [c.name, c.id]}), :include_blank => true, :required => @issue.required_attribute?('category_id') %>
+<%= link_to(image_tag('add.png', :style => 'vertical-align: middle;'),
+            new_project_issue_category_path(@issue.project),
+            :remote => true,
+            :method => 'get',
+            :title => l(:label_issue_category_new),
+            :tabindex => 200) if User.current.allowed_to?(:manage_categories, @issue.project) %></p>
+<% end %>
+
+<% if @issue.safe_attribute?('fixed_version_id') && @issue.assignable_versions.any? %>
+<p style="<%= (@issue.is_committee?) ? 'display:none' : "" %>"><%= f.select :fixed_version_id, version_options_for_select(@issue.assignable_versions, @issue.fixed_version), :include_blank => true, :required => @issue.required_attribute?('fixed_version_id') %>
+<%= link_to(image_tag('add.png', :style => 'vertical-align: middle;'),
+            new_project_version_path(@issue.project),
+            :remote => true,
+            :method => 'get',
+            :title => l(:label_version_new),
+            :tabindex => 200) if User.current.allowed_to?(:manage_versions, @issue.project) %>
+</p>
+<% end %>
+
+<% unless @issue.is_committee? %>
+    <%= render :partial => "issues/recurrent_issues" %>
+<% end %>
+<!--
+<%# if @issue.safe_attribute?('direction_id') && @issue.is_task? %>
+  <p><%#= f.select :direction_id, Direction.all.collect {|p| [ p.name, p.id ] }, {:include_blank => true}, :disabled => true %></p>
+<%# end %>
+
+<%# if @issue.safe_attribute?('origin_id') && @issue.is_task? %>
+  <p><#%= f.select :origin_id, Committee.all.collect {|p| [ p.name, p.id ] }, :include_blank => true%></p>
+<%# end %>
+ -->
+</div>
+
+<div class="splitcontentright">
+<% if @issue.safe_attribute?('parent_issue_id') && false %>
+<p id="parent_issue" style="<%= (@issue.is_committee?) ? 'display:none' : "" %>"><%= f.text_field :parent_issue_id, :size => 10, :required => @issue.required_attribute?('parent_issue_id') %></p>
+<%= javascript_tag "observeAutocompleteField('issue_parent_issue_id', '#{escape_javascript auto_complete_issues_path(:project_id => @issue.project, :scope => Setting.cross_project_subtasks)}')" %>
+<% end %>
+
+<% if @issue.safe_attribute?('start_date') && !@issue.is_desition? %>
+<p id="start_date_area">
+  <%= f.date_field(:start_date, :size => 10, :required => @issue.required_attribute?('start_date'), :label => (@issue.is_task? ? l(:field_registration_date) : (@issue.is_committee? ? l(:label_date) : l(:field_start_date)))) %>
+  <%= calendar_for('issue_start_date') if @issue.leaf? %>
+</p>
+<% end %>
+
+<% if @issue.safe_attribute?('due_date') && !@issue.is_committee? && @parent_issue %>
+<p id="due_date_area">
+  <%= f.date_field(:due_date, :value => (@parent_issue.due_date ? @parent_issue.due_date.to_s : '' ), :size => 10, :required => @issue.required_attribute?('due_date'), :label => (@issue.is_desition? ? l(:field_application_date) : l(:field_due_date))) %>
+  <%= calendar_for('issue_due_date') if @issue.leaf? %>
+</p>
+<% elsif @issue.safe_attribute?('due_date') && !@issue.is_committee? %>
+<p id="due_date_area">
+  <%= f.date_field(:due_date, :size => 10, :required => @issue.required_attribute?('due_date'), :label => (@issue.is_desition? ? l(:field_application_date) : l(:field_due_date))) %>
+  <%= calendar_for('issue_due_date') if @issue.leaf? %>
+</p>
+<% end %>
+
+<% if @issue.safe_attribute?('compliance_date') && @issue.is_task? %>
+  <p>
+    <% compliance_required = ( (params[:issue] && params[:issue][:status_id] && params[:issue][:status_id].to_s == '5') || (@issue.status_id && @issue.status_id.to_s == '5') ) %>
+    <% compliance_value = ((params[:issue] && params[:issue][:compliance_date] && params[:issue][:compliance_date] != '') ? params[:issue][:compliance_date] : ( (@issue.status_id && @issue.compliance_date) ? @issue.compliance_date.to_s : ( compliance_required ? Date.today.to_s : ''))) %>
+    <%= f.date_field(:compliance_date, :size => 10, :required => compliance_required, :value => compliance_value) %>
+    <%= calendar_for('issue_compliance_date') if @issue.leaf? %>
+  </p>
+<% end %>
+
+<% if @issue.safe_attribute? 'estimated_hours' %>
+<p style="<%= (@issue.is_committee?) ? 'display:none' : "" %>"><%= f.text_field :estimated_hours, :size => 3, :required => @issue.required_attribute?('estimated_hours') %> <%= l(:field_hours) %></p>
+<% end %>
+
+<% if @issue.safe_attribute?('done_ratio') && Issue.use_field_for_done_ratio? %>
+<p style="<%= (@issue.is_committee?) ? 'display:none' : "" %>"><%= f.select :done_ratio, ((0..10).to_a.collect {|r| ["#{r*10} %", r*10] }), :required => @issue.required_attribute?('done_ratio') %></p>
+<% end %>
+
+<% if @issue.safe_attribute?('vision_id') && @issue.is_task? %>
+  <!--<p><%#= f.select :vision_id, Vision.all.collect {|p| [ p.name, p.id ] }, :include_blank => true, :required => true %></p>-->
+<% end %>
+
+</div>
+</div>
+
+<% if @issue.safe_attribute? 'custom_field_values' %>
+<%= render :partial => 'issues/form_custom_fields' %>
+<% end %>
+
+
+
+<% end %>
+
+<% include_calendar_headers_tags %>
+
+<script type="text/javascript" charset="utf-8">
+
+  $( "#issue_assigned_to_id" ).change(function() {
+    getDirection();
+  });
+
+  function getDirection() {
+
+    var assigned_to = '';
+    if($("#issue_assigned_to_id").size() != 0) assigned_to = $("#issue_assigned_to_id").val();
+    if(assigned_to == '' || assigned_to == undefined){
+      $("#issue_direction_id").val('');
+      return false;
+    }
+    $.ajax({
+      url: '<%= escape_javascript issue_get_direction_path() %>',
+      type: 'post',
+      data: {assigned_to: assigned_to},
+      success: function(obj){
+        console.log(obj);
+        $("#issue_direction_id").val(obj);
+      }
+    });
+  }
+</script>

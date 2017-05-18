@@ -1,0 +1,26 @@
+@media (min-width: 899px){
+.div-user-calendar-label{
+	padding-left: 180px;
+}
+
+.div-user-calendar{
+	margin-left: 180px
+}
+
+.user-calendar-table{
+	width: 60% !important;
+}
+}
+.ui-selected{
+	background-color: #407FF7;
+}
+
+table.list tbody td.name {
+    width: 30%;
+}
+table.list tbody td.created_on {
+    width: 20%;
+}
+table.list tbody td.user_calendar_hours{
+  text-align:left;
+}

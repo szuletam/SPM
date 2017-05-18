@@ -1,0 +1,4 @@
+<%= form_for @time_entry, :url => work_time_update_path, :id => "time-entry-form" do |f| %>
+  <%= render :partial => 'form', :locals => {:f => f} %>
+  <%= submit_tag l(:button_edit), :onclick => "update_time_entry(); return false;" %>
+<% end %>

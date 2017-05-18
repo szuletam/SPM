@@ -1,0 +1,31 @@
+<%= form_tag({}) do -%>
+<%= hidden_field_tag 'back_url', url_for(params) %>
+<div class="autoscroll">
+<table class="list holidays">
+<thead>
+  <tr>
+    <% @query.inline_columns.each do |column| %>
+      <%= column_header(column) %>
+    <% end %>
+   
+  </tr>
+</thead>
+<tbody>
+<% holidays.each do |holiday| -%>
+  <tr class="holiday <%= cycle("odd", "even") %> hascontextmenu ">
+    <td class="checkbox hide-when-print" style="display:none;"><%= check_box_tag("ids[]", holiday.id, false, :id => nil) %></td>
+    <%= raw @query.inline_columns.map {|column| 
+		if column.name == :name
+			"<td class=\"#{column.name}\" style=\"text-align: left\">&nbsp;&nbsp;&nbsp;#{column_content_holidays(column, holiday)}</td>"
+		else
+			"<td class=\"#{column.name}\">#{column_content_holidays(column, holiday)}</td>"
+		end
+	}.join %>
+  </tr>
+<% end -%>
+</tbody>
+</table>
+</div>
+<% end -%>
+<%= context_menu holidays_context_menu_path %>
+

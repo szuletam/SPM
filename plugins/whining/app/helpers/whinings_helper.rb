@@ -1,0 +1,2 @@
+module WhiningsHelper
+end

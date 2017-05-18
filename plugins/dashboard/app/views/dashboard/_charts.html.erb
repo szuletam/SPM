@@ -1,0 +1,81 @@
+<% if @query.valid? %>
+    <% @splitcontent = 'splitcontentleft' %>
+    <div class="splitcontent">
+      <% @flag = '0' %>
+      <%@charts.each do |chart| %>
+          <% unless chart[:data].empty? %>
+              <% @flag = '1' %>
+              <div  class="<%=@splitcontent%>">
+                <% if chart[:chart] != "gauge" && chart[:chart] != "line"  && chart[:chart] != "stack" %>
+                    <div  id="buttons_<%= chart[:div_id]%>">
+                      <%=link_to(l(:label_bar),
+                                 {:controller => 'dashboard', :action => 'chart', :new_chart => 'bar'}.merge(chart),
+                                 :class => 'icon icon-bar-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_bar))%>
+                      &nbsp;&nbsp;
+                      <%# link_to(l(:label_line),
+                                 {:controller => 'dashboard', :action => 'chart', :new_chart => 'line'}.merge(chart),
+                                 :class => 'icon icon-line-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_line))%>
+                      <%#=link_to(l(:label_pie),
+                                 {:controller => 'dashboard', :action => 'chart', :new_chart => 'pie'}.merge(chart),
+                                 :class => 'icon icon-pie-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_pie))%>
+
+                      <%=link_to(l(:label_donut),
+                                 {:controller => 'dashboard', :action => 'chart', :new_chart => 'donut'}.merge(chart),
+                                 :class => 'icon icon-donut-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_donut))%>
+                    </div>
+                <%elsif chart[:chart] == "line"%>
+                    <%if params["action"] == 'index'%>
+                      <%@action_reported = 'project_reported_hours_chart'%>
+                    <%else%>
+                        <%@action_reported = 'reported_hours_chart'%>
+                    <% end %>
+                    <div  id="buttons_<%= chart[:div_id]%>">
+                      <%=link_to(l(:label_daily),
+                                 {:controller => 'dashboard', :action => @action_reported, :time_interval => 'spent_on', :old_params => @params},
+                                 :class => 'icon icon-daily-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_daily))%>
+                      <%=link_to(l(:label_weekly),
+                                 {:controller => 'dashboard', :action => @action_reported, :time_interval => 'tweek', :old_params => @params},
+                                 :class => 'icon icon-weekly-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_weekly))%>
+                      <%=link_to(l(:label_monthly),
+                                 {:controller => 'dashboard', :action => @action_reported, :time_interval => 'tmonth', :old_params => @params},
+                                 :class => 'icon icon-monthly-chart',
+                                 :remote => true,
+                                 :method => 'post',
+                                 :title => l(:label_monthly))%>
+                    </div>
+                <% end %>
+                <div id="<%= chart[:div_id]%>"></div>
+              </div>
+              <%= javascript_tag do %>
+                  <%= render :partial => "dashboard/charts/#{chart[:chart]}",
+                             :locals => chart
+                  %>
+              <% end %>
+              <% @splitcontent = (@splitcontent == 'splitcontentleft'?'splitcontentright':'splitcontentleft') %>
+          <% end %>
+      <% end %>
+      <% if @flag == '0' %>
+          <label><%= l(:label_no_data_charts) %></label>
+      <% end %>
+    </div>
+<% else %>
+    <%= error_messages_for 'query' %>
+<% end %>

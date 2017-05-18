@@ -1,0 +1,221 @@
+<%= stylesheet_link_tag 'summaries.css', :plugin => 'summaries' %>
+<%= stylesheet_link_tag 'bootstrap.css', :plugin => 'summaries' %>
+<script type="text/javascript" charset="utf-8">
+    function reloadSimple(){
+        window.location.replace("<%= url_for(summaries_path)%>");
+    }
+    function reloadSummariesForUser(select){
+        var u_id = $(select).val();
+        var url = '';
+        if(u_id != '' && u_id != undefined) url = "?for_user="+ u_id;
+        window.location.replace("<%= url_for(summaries_path)%>" + url);
+    }
+    function reloadForUser(u_id){
+        var url = "?for_user="+ u_id;
+        window.location.replace("<%= url_for(summaries_path)%>" + url);
+    }
+    function reloadSummariesForDirection(select){
+        var d_id = $(select).val();
+        var url = '';
+        if(d_id != '' && d_id != undefined) url = "?for_direction="+ d_id;
+        window.location.replace("<%= url_for(summaries_path)%>" + url);
+    }
+    function reloadSummariesForDirectionLink(d_id){
+        var url = '';
+        if(d_id != '' && d_id != undefined) url = "?for_direction="+ d_id;
+        window.location.replace("<%= url_for(summaries_path)%>" + url);
+    }
+    function reloadSummariesForProject(p_id){
+        var url = '';
+        if(p_id != '' && p_id != undefined) url = "?utf8=✓&set_filter=1&f[]=project_and_descendants&op[project_and_descendants]=%3D&v[project_and_descendants][]="+ p_id +"&f[]=";
+        window.location.replace("<%= url_for(summaries_path)%>" + url);
+    }
+</script>
+<% if  Project.visible.any? %>
+<div class="contextual">
+  <%= link_to l(:label_issue_new), issues_new_path, :class => 'icon icon-add' %>
+</div>
+<% end %>
+<h2><%= l(:label_scrum)%></h2>
+
+<% my_project = params[:v] && params[:v][:project_and_descendants] && params[:v][:project_and_descendants][0] ? params[:v][:project_and_descendants][0] : '' %>
+<div class="row summaries">
+    <div class="row">
+      <div class="col-md-2" style="border: none; display: none">
+        <% my_project = params[:v] && params[:v][:project_and_descendants] && params[:v][:project_and_descendants][0] ? params[:v][:project_and_descendants][0] : '' %>
+        <% if my_project != '' %>
+          <% if @for_general %>
+          <h3><a class="button" style="font-size: 12px" onclick="reloadSimple()"><%= l(:field_lua) %></a></h3>
+          <% elsif @for_direction %>
+            <h3><a class="button" style="font-size: 12px" onclick="reloadSummariesForDirectionLink('<%= @for_direction.id %>');"><%= @for_direction.name %></a></h3>
+          <% elsif @for_user %>
+            <h3><a class="button" style="font-size: 12px" onclick="reloadSummariesForDirectionLink('<%= @for_user.direction.id %>');"><%= @for_user.direction.name %></a></h3>
+          <% end %>
+        <% elsif @for_general && (User.current.director? || User.current.general? || User.current.admin?) %>
+            <h3><a class="button" style="font-size: 12px" onclick="reloadSummariesForDirectionLink('<%= @for_general.direction.id %>');"><%= @for_general.direction.name %></a></h3>
+        <% elsif @for_direction %>
+            <h3><a class="button" style="font-size: 12px" onclick="reloadSimple()"><%= l(:field_lua) %></a></h3>
+        <% elsif @for_user %>
+            <h3><a class="button" style="font-size: 12px" onclick="reloadSummariesForDirectionLink('<%= @for_user.direction.id %>');"><%= @for_user.direction.name %></a></h3>
+        <% end %>
+      </div>
+      <div class="col-md-6 col-md-offset-2">
+        <% if my_project != '' %>
+            <p style="text-align: left; font-size: 20px; font-weight: bold ;border-bottom: solid 1px #000000"><%= Project.find(my_project).name %></p>
+      <% elsif @for_general %>
+            <p style="text-align: left; font-size: 20px; font-weight: bold ;border-bottom: solid 1px #000000"><%= l(:field_lua) %></p>
+        <% elsif @for_direction %>
+            <p style="text-align: left; font-size: 20px; font-weight: bold ;border-bottom: solid 1px #000000"><%= @for_direction.name %></p>
+        <% elsif @for_user %>
+            <p style="text-align: left; font-size: 20px; font-weight: bold ;border-bottom: solid 1px #000000"><%= @for_user.name %></p>
+        <% end %>
+      </div>
+      <div class="col-md-offset-1 col-md-2" style="border: none !important;">
+        <h5><%= l(:field_make_click_for_detail) %></h5>
+      </div>
+
+
+      </div>
+
+    <div class="row">
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:label_tasks_opened) %></h2>
+        <% if @data[:ta].any? %>
+            <p><%= link_to @data[:ta].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "due_date" => {:operator => "*"}, "status_id" => {:operator => "=", :values => [1] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})) %></p>
+        <% else %>
+            <p style="color: #000000">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:label_tasks_delayeds) %></h2>
+        <% if @data[:tr].any? %>
+            <p><%= link_to @data[:tr].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF0000" %></p>
+        <% else %>
+            <p style="color: #FF0000">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:label_due_on_7) %></h2>
+        <% if @data[:tr7].any? %>
+            <p><%= link_to @data[:tr7].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => "><", :values => [(Date.today).to_s,(Date.today + 7).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF8C00" %></p>
+        <% else %>
+            <p style="color: #FF8C00">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:label_due_on_8) %></h2>
+        <% if @data[:tr8].any? %>
+            <p><%= link_to @data[:tr8].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => "><", :values => [(Date.today + 8).to_s,(Date.today + 30).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #00AA00" %></p>
+        <% else %>
+            <p style="color: #00AA00">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:label_due_on_30) %></h2>
+        <% if @data[:tr30].any? %>
+            <p><%= link_to @data[:tr30].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => ">=", :values => [(Date.today + 31).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #929292" %></p>
+        <% else %>
+            <p style="color: #929292">0</p>
+        <% end %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2" style="border: none !important;"></div>
+      <div class="col-md-8">
+        <p style="text-align: left; font-size: 20px; font-weight: bold ;border-bottom: solid 1px #000000">TAREAS PENDIENTES POR CERRAR</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2" style="min-height: 146px;">
+        <h2 class="summary-title"><%= l(:field_filter_by) %>:</h2>
+        <% if @directions && @directions.any? %>
+            <% options =
+                   ("<option value=''>#{ @for_direction ? l(:label_see_lua) : l(:label_jump_to_a_direction_short) }</option>" +
+                       '<option value="" disabled="disabled">---</option>').html_safe
+               options << options_from_collection_for_select(@directions, "id", "name", (@for_direction ? @for_direction.id : nil)) %>
+            <%= select_tag "my_direction", options, :onchange => "reloadSummariesForDirection(this)", :style => "margin-bottom: 10px; width: 200px" %>
+        <% end %>
+        <% if @users && @users.any? %>
+            <% options =
+                   ("<option value=''>#{ @for_user ? l(:label_see_lua) : l(:label_jump_to_a_user_short) }</option>" +
+                       '<option value="" disabled="disabled">---</option>').html_safe
+               options << options_from_collection_for_select(@users, "id", "name", (@for_user ? @for_user.id : nil)) %>
+            <%= select_tag "users_direction", options, :onchange => "reloadSummariesForUser(this)", :style => "margin-bottom: 10px; width: 200px"  %>
+        <% end %>
+        <% if @my_projects && @my_projects.any? %>
+            <% my_project = params[:v] && params[:v][:project_and_descendants] && params[:v][:project_and_descendants][0] ? params[:v][:project_and_descendants][0] : '' %>
+            <% options =
+                   ("<option value=''>#{ my_project && !my_project.blank? ? l(:label_see_lua) : l(:label_jump_to_a_project) }</option>" +
+                       '<option value="" disabled="disabled">---</option>').html_safe
+               options << project_tree_options_for_select(@my_projects, :selected => (Project.find(my_project) rescue nil)) %>
+            <%= render :partial => 'projects/tree_summaries', :locals => {:my_project => (Project.find(my_project) rescue nil)}%>
+            <%#= select_tag "my_projects", options, :onchange => "reloadSummariesForProject(this)", :style => "margin-bottom: 17px; width: 200px"  %>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:pending_close) %><br><%= l(:label_tasks_delayeds)%></h2>
+        <% if @data[:tro].any? %>
+            <p><%= link_to @data[:tro].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [5] },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF0000" %></p>
+        <% else %>
+            <p style="color: #FF0000">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:pending_close) %><br><%= l(:label_due_on_7)%></h2>
+        <% if @data[:tro7].any? %>
+            <p><%= link_to @data[:tro7].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [5] },"due_date" => {:operator => "><", :values => [(Date.today).to_s,(Date.today + 7).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF8C00" %></p>
+        <% else %>
+            <p style="color: #FF8C00">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:pending_close) %><br><%= l(:label_due_on_8)%></h2>
+        <% if @data[:tro8].any? %>
+            <p><%= link_to @data[:tro8].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [5] },"due_date" => {:operator => "><", :values => [(Date.today + 8).to_s,(Date.today + 30).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #00AA00" %></p>
+        <% else %>
+            <p style="color: #00AA00">0</p>
+        <% end %>
+      </div>
+      <div class="col-md-2">
+        <h2 class="summary-title"><%= l(:pending_close) %><br><%= l(:label_due_on_30)%></h2>
+        <% if @data[:tro30].any? %>
+            <p><%= link_to @data[:tro30].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [5] },"due_date" => {:operator => ">=", :values => [(Date.today + 31).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #929292" %></p>
+        <% else %>
+            <p style="color: #929292">0</p>
+        <% end %>
+      </div>
+    </div>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    $( "#legend_filters" ).ready(function() {
+        toggleFieldset("#legend_filters");
+    });
+</script>
+
+<%= form_tag({ :controller => 'summaries', :action => 'index'},
+             :method => :get, :id => 'query_form') do %>
+
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content" class="hide-when-print">
+      <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+        <legend id="legend_filters" onclick="toggleFieldset(this);">
+          <%= l(:label_filter_plural) %>
+        </legend>
+        <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+          <%= render :partial => 'summaries/filters_summaries', :locals => {:query => @query, :show_add_filters => true} %>
+        </div>
+      </fieldset>
+    </div>
+    <p class="buttons hide-when-print">
+
+      <%= link_to_function l(:button_apply), '$("#query_form").submit();', :class => 'icon icon-checked' %>
+      <%= link_to l(:button_clear), { :set_filter => 1 }, :class => 'icon icon-reload'  %>
+    </p>
+<% end %>
+
+<script type="text/javascript" charset="utf-8">
+  $( document ).ready(function(){
+      $('#div_project_quick_jump_box').hide();
+  });
+</script>

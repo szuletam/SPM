@@ -1,0 +1,59 @@
+<div class="contextual">
+<%= link_to l(:label_holiday_new), new_holiday_path, :class => 'icon icon-add' %>
+</div>
+<h2><%= l(:label_holidays) %></h2>
+
+<%= form_tag({ :controller => 'holidays', :action => 'index'},
+            :method => :get, :id => 'query_form') do %>
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content" class="hide-when-print">
+    <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
+      <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+        <%= render :partial => 'holidays/filters_holiday', :locals => {:query => @query} %>
+      </div>
+    </fieldset>
+    <fieldset class="collapsible collapsed">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_options) %></legend>
+      <div style="display: none;">
+        <table>
+          <tr>
+            <td><%= l(:field_column_names) %></td>
+            <td><%= render_query_columns_selection(@query) %></td>
+          </tr>
+          <tr>
+          </tr>
+        </table>
+      </div>
+    </fieldset>
+    </div>
+    <p class="buttons hide-when-print">
+
+    <%= link_to_function l(:button_apply), '$("#query_form").submit();', :class => 'icon icon-checked' %>
+    <%= link_to l(:button_clear), { :set_filter => 1 }, :class => 'icon icon-reload'  %>
+    </p>
+<% end %>
+
+<% if @query.valid? %>
+<% if @holidays.empty? %>
+<p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+<%= render :partial => 'holidays/list', :locals => {:holidays => @holidays, :query => @query} %>
+<span class="pagination"><%= pagination_links_full @holiday_pages, @holiday_count %></span>
+<% end %>
+<% end %>
+
+<% other_formats_links do |f| %>
+  <%= f.link_to 'CSV', :url => params.merge({:format => 'csv',:page=>nil}) %>
+<% end %>
+
+<% content_for :sidebar do %>
+	<h3><%= l(:label_administration) %></h3>
+	<div id="admin-menu">
+		<ul>
+			<%= render_menu :admin_menu %>
+		</ul>
+	</div>
+<% end %>
+
+<% html_title l(:label_holidays) %>

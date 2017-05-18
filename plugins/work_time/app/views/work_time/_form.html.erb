@@ -1,0 +1,33 @@
+<div id="errorExplanation" style="display:none;"></div>
+<div class="box tabular">
+  <%= hidden_field_tag "format", "js" %>
+  <% if @include_project %>
+    <%= hidden_field_tag "project_id", @time_entry.project_id %>
+  <% end %>
+  <%= hidden_field_tag "date", @time_entry.spent_on %>
+  <%= hidden_field_tag "user_id", @time_entry.user_id %>
+  <% if params[:action] == "edit" || params[:action] == "form"  %>
+    <%= hidden_field_tag "time_entry[id]", @time_entry.id, :id => "time_entry_id" %>
+  <% end %>
+  <%= hidden_field_tag "time_entry[project_id]", @time_entry.project_id %>
+  <%= hidden_field_tag "time_entry[issue_id]", @time_entry.issue_id %>
+  <%= hidden_field_tag "time_entry[user_id]", @time_entry.user_id %>
+  
+  <p><label for="time_entry_project"><%= l(:field_project) %></label><%= f.text_field :project, :size => 100, :required => false, :readonly => true %></p>
+  <p><label for="time_entry_issue"><%= l(:field_issue) %></label><%= f.text_field :issue, :size => 100, :required => false, :readonly => true %></p>
+  
+  <p><label for="time_entry_spent_on"><%= l(:field_spent_on) %><span class="required"> *</span></label><%= f.text_field :spent_on, :size => 10, :required => true, :readonly => true %></p>
+  
+  <%= fields_for :issue, @time_entry.issue, { :builder => Redmine::Views::LabelledFormBuilder, :lang => current_language} do |issue| %>
+	<% if @time_entry.issue.leaf? && Issue.use_field_for_done_ratio? %>
+	  <p><%= issue.select :done_ratio, ((0..10).to_a.collect {|r| ["#{r*10} %", (r*10).to_s] }) %></p>
+	<% end %>
+  <% end %>
+  
+  <p><label for="time_entry_hours"><%= l(:field_hours) %><span class="required"> *</span></label><%= f.text_field :hours, :size => 6, :required => true %></p>
+  <p><label for="time_entry_comments"><%= l(:field_comments) %><span class="required"> *</span></label><%= f.text_field :comments, :size => 100, :maxlength => 1024 %></p>
+  <p><label for="time_entry_activity_id"><%= l(:field_activity) %><span class="required"> *</span></label><%= f.select :activity_id, activity_collection_for_select_options(@time_entry), :required => true %></p>
+  <% @time_entry.custom_field_values.each do |value| %>
+    <p><%= custom_field_tag_with_label :time_entry, value %></p>
+  <% end %>
+</div>
