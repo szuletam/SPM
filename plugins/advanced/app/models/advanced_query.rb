@@ -125,4 +125,38 @@ class AdvancedQuery < IssueQuery
     self.filters = {}
   end
 
+  def issues(options={})
+    order_option = [group_by_sort_order, options[:order]].flatten.reject(&:blank?)
+
+    scope = Issue.visible.
+        joins(:status, :project).
+        where(statement).
+        includes(([:status, :project] + (options[:include] || [])).uniq).
+        where(options[:conditions]).where(:tracker => Tracker.where(:is_in_roadmap => true).map{|t| t.id}).
+        order(order_option).
+        joins(joins_for_order_statement(order_option.join(','))).
+        limit(options[:limit]).
+        offset(options[:offset])
+
+    scope = scope.preload(:custom_values)
+    if has_column?(:author)
+      scope = scope.preload(:author)
+    end
+
+    issues = scope.to_a
+
+    if has_column?(:spent_hours)
+      Issue.load_visible_spent_hours(issues)
+    end
+    if has_column?(:total_spent_hours)
+      Issue.load_visible_total_spent_hours(issues)
+    end
+    if has_column?(:relations)
+      Issue.load_visible_relations(issues)
+    end
+    issues
+  rescue ::ActiveRecord::StatementInvalid => e
+    raise StatementInvalid.new(e.message)
+  end
+
 end

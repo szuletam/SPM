@@ -4,11 +4,9 @@ class AdvancedController < ApplicationController
 
   include QueriesHelper
   include SortHelper
-  include ReportsHelper
 
   helper :sort
   helper :queries
-  helper :reports
 
   before_filter :require_login
   before_filter :find_project, :only => [:index]
@@ -21,6 +19,22 @@ class AdvancedController < ApplicationController
   #@AIG:
   def self.issues_by_user(project, issues, delayed = false)
     count_and_group_by(:project => project, :association => :assigned_to, :with_subprojects => true, :issues => issues, :delayed => delayed )
+  end
+
+  def self.issues_by_project(project, issues, delayed = false)
+    @statuses = IssueStatus.sorted.to_a
+    data = count_and_group_by(:project => project, :association => :project, :with_subprojects => true, :issues => issues, :delayed => delayed )
+    new_data = []
+    project.self_and_descendants.each do |current_project|
+      @statuses.each do |status|
+        total = aggregate(data, { 'project_id' => current_project.id, 'status_id' => status.id })
+        current_project.descendants.each do |descendant|
+          total += aggregate(data, { 'project_id' => descendant.id, 'status_id' => status.id })
+        end
+        new_data << {'status_id' => status.id, 'closed' => status.is_closed?, 'project_id' => current_project.id, 'total' => total }
+      end
+    end
+    new_data
   end
 
   def self.count_and_group_by(options)
@@ -71,18 +85,32 @@ class AdvancedController < ApplicationController
     #@AIG:
     assigned = @issues.map{|i| i.assigned_to_id}
 
+    projects_with_issues = @issues.map{|i| i.project_id}
 
+    projects = []
+
+    @project.self_and_descendants.each do |project|
+      in_projects = false
+      project.self_and_descendants.each do |descendant|
+        if projects_with_issues.include? descendant.id
+          in_projects = true
+          break
+        end
+      end
+      if in_projects
+        projects << project.id
+      end
+    end
 
     @field = "direction_id"
     @rows = directions.any? ? Direction.where(:id => directions).sort: Direction.all.sort
-
-
 
     #@AIG:
     @field2 = "assigned_to_id"
     @rows2 = assigned.any? ? User.where(:id => assigned).sort: User.all.sort
 
-    #raise @rows2.inspect
+    @field3 = "project_id"
+    @rows3 = projects.any? ? Project.where(:id => projects).sort: Project.all.sort
 
     if issues.any?
       @data =  AdvancedController.issues_by_direction(@project,issues) || []
@@ -92,6 +120,11 @@ class AdvancedController < ApplicationController
       @data2 =  AdvancedController.issues_by_user(@project,issues) || []
       @data_delay2 =  AdvancedController.issues_by_user(@project,issues, true) || []
 
+      #@AIG:
+      @data3 =  AdvancedController.issues_by_project(@project,issues) || []
+      @data_delay3 =  AdvancedController.issues_by_project(@project,issues, true) || []
+
+
     else
       @data = []
       @data_delay = []
@@ -99,12 +132,16 @@ class AdvancedController < ApplicationController
       #@AIG:
       @data2 = []
       @data_delay2 = []
+
+      @data3 = []
+      @data_delay3 = []
     end
 
     sort_rows_by_delayed
 
     @report_title = l(:field_direction)
     @report_title2 = l(:field_assigned_to)
+    @report_title3 = l(:field_project)
 
     respond_to do |format|
       format.xlsx
@@ -148,8 +185,6 @@ class AdvancedController < ApplicationController
       delayed_porcent2[row.id] = total_row2 > 0 ? (total_delayed_row2.to_f/total_row2*100).round(2) : 0
       new_rows2[row.id] = row
     end
-
-    #raise delayed_porcent2.inspect
 
     delayed_porcent2 = delayed_porcent2.sort_by { |k,v| v}.reverse.to_h
 
