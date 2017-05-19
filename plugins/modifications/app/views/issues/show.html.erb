@@ -99,8 +99,8 @@
           <table class="list">
             <thead><tr>
               <th><%= l(:field_task) %></th>
-              <th><%= l(:field_assigned_to) %></th>
               <th><%= l(:field_project_priority) %></th>
+              <th><%= l(:field_assigned_to) %></th>
               <th style=";width: 70px !important;"><%= l(:field_term_date) %></th>
             </tr></thead>
             <tbody>
@@ -109,8 +109,8 @@
                 <% next if i.nil? || i.tracker_id != Setting.default_application_for_task.to_i  %>
                 <tr>
                   <td style="text-align: left"><%= link_to_issue(i) rescue link_to(i.subject, issue_path(i)) %></td>
-                  <td style="text-align: left"><%= i.assigned_to %></td>
                   <td style="text-align: left"><%= i.project %></td>
+                  <td style="text-align: left"><%= i.assigned_to %></td>
                   <td style="text-align: left;width: 70px !important;"><%= format_date(i.due_date) %></td>
                 </tr>
               <% end %>

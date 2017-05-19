@@ -1,0 +1,5 @@
+<% if @project && @select %>
+$('#<%= @select %>').empty();
+$('#<%= @select %>').append('<option value=""></option>');
+$('#<%= @select %>').append('<%= escape_javascript options_from_collection_for_select(@project.users.order('firstname ASC'), "id", "name") %>');
+<% end %>

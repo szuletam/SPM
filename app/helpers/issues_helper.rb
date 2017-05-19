@@ -45,7 +45,7 @@ module IssuesHelper
 
     options += project_tree_options_for_select(projects, :selected => project_selected) if projects.any?
 
-    select_tag "#{for_table}_topic[#{row}][project_id][]", options, :style => "width:120px;", :class => "#{for_table}_topic_project_id", :id => "#{for_table}_topic_#{row}_project_id_#{random}"
+    select_tag "#{for_table}_topic[#{row}][project_id][]", options, :style => "width:120px;", :class => "#{for_table}_topic_project_id", :id => "#{for_table}_topic_#{row}_project_id_#{random}", :onchange => "load_responsables('#{for_table}_topic_#{row}_project_id_#{random}','#{for_table}_topic_#{row}_assigned_to_id_#{random}')"
   end
 
   def grouped_issue_list(issues, query, issue_count_by_group, &block)

@@ -10,6 +10,7 @@ match '/issues/validate_recurrence_for_committee', :to => 'issues#validate_recur
 match '/issues/table_row', :to => 'issues#table_row', :action => 'table_row', :as => 'issue_table_row', :via => [:get, :post]
 match '/issues/committee_data', :to => 'issues#committee_data', :action => 'committee_data', :as => 'issue_committee_data', :via => [:get, :post]
 match '/issues/get_direction', :to => 'issues#get_direction', :action => 'get_direction', :as => 'issue_get_direction', :via => [:get, :post]
+match '/issues/load_responsables', :to => 'issues#load_responsables', :action => 'load_responsables', :as => 'issue_load_responsables', :via => [:get, :post]
 match '/issues/trackers_for_import', :to => 'issues#trackers_for_import', :action => 'trackers_for_import', :as => 'issue_trackers_for_import', :via => [:get, :post]
 match '/issues/attributes_for_import', :to => 'issues#attributes_for_import', :action => 'attributes_for_import', :as => 'issue_attributes_for_import', :via => [:get, :post]
 resources :issues do

@@ -58,8 +58,8 @@
                     &nbsp;&nbsp;
                     <%= l(:field_task) %> <span class="required"> *</span>
                   </th>
-                  <th><%= l(:field_assigned_to) %></th>
                   <th><%= l(:field_project_priority) %><span class="required"> *</span></th>
+                  <th><%= l(:field_assigned_to) %></th>
                   <th><%= l(:field_term_date) %></th>
                   <th width="1%">R</th>
                   <th width="1%"></th>
@@ -127,8 +127,8 @@
                       &nbsp;&nbsp;
                       <%= l(:field_task) %> <span class="required"> *</span>
                     </th>
-                    <th><%= l(:field_assigned_to) %></th>
                     <th><%= l(:field_project_priority) %><span class="required"> *</span></th>
+                    <th><%= l(:field_assigned_to) %></th>
                     <th><%= l(:field_term_date) %></th>
                     <th width="1%">R</th>
                     <th width="1%"></th>
@@ -225,8 +225,8 @@
     html = html + '&nbsp;&nbsp;';
     html = html + '<%= l(:field_task) %> <span class="required"> *</span>';
     html = html + '</th>';
-    html = html + '<th><%= l(:field_assigned_to) %></th>';
     html = html + '<th><%= l(:field_project_priority) %> <span class="required"> *</span></th>';
+    html = html + '<th><%= l(:field_assigned_to) %></th>';
     html = html + '<th><%= l(:field_term_date) %></th>';
     html = html + '<th width="1%">R</th>';
     html = html + '<th width="1%"></th>';
@@ -284,6 +284,19 @@
       type: 'post',
       data: {row: row, issue_id: issue_id, project_id: <%= project.id %>, tracker_id: tracker_id}
     });
+  }
+
+  function load_responsables(project_select_id, assigned_select_id) {
+      var project_id = $('#' + project_select_id).val();
+      if (project_id == '' || project_id == undefined) {
+          $('#' + assigned_select_id).empty();
+          return false;
+      }
+      $.ajax({
+          url: '<%= escape_javascript issue_load_responsables_path(:format => 'js') %>',
+          type: 'post',
+          data: {project_id: project_id, select: assigned_select_id}
+      });
   }
 </script>
 <% end %>

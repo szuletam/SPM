@@ -13,11 +13,13 @@
                 <%= hidden_field_tag "issue_topic[#{row}][id][]", issues["id"][i]%>
             <% end %>
           </td>
-          <td class="assigned">
-            <%= select_tag "issue_topic[#{row}][assigned_to_id][]", options_from_collection_for_select(@project.users.order('firstname ASC'), "id", "name", issues["assigned_to_id"][i]), {:style => "width:120px;", :id => "issue_topic_#{row}_assigned_to_id_#{random}", :include_blank => true}  %>
-          </td>
           <td class="project_id">
             <%= render_strategic_projects('issue', random, row, issues["project_id"][i]) %>
+          </td>
+          <td class="assigned">
+            <% issue_project = Project.find(issues["project_id"][i]) rescue nil %>
+            <% options = issue_project ? options_from_collection_for_select(issue_project.users.order('firstname ASC'), "id", "name", issues["assigned_to_id"][i]) : nil %>
+            <%= select_tag "issue_topic[#{row}][assigned_to_id][]", options, {:style => "width:120px;", :id => "issue_topic_#{row}_assigned_to_id_#{random}", :include_blank => true}  %>
           </td>
           <td class="due_date">
             <%= date_field_tag "issue_topic[#{row}][due_date][]", issues["due_date"][i], :size => 9, :id => "issue_topic_#{row}_due_date_#{random}", :class => 'issue_topic_due_date' %>
@@ -48,11 +50,13 @@
             <%= text_area_tag "issue_topic[#{row}][subject][]", issue.subject, :cols => 40, :rows => 2, :class => 'issue_topic_subject', :id => "issue_topic_#{params[:row]}_subject_#{random}"   %>
             <%= hidden_field_tag "issue_topic[#{row}][id][]", issue.id %>
           </td>
-          <td class="assigned">
-            <%= select_tag "issue_topic[#{row}][assigned_to_id][]", options_from_collection_for_select(@project.users.order('firstname ASC'), "id", "name", issue.assigned_to_id), {:style => "width:120px;", :id => "issue_topic_#{row}_assigned_to_id_#{random}", :include_blank => true}  %>
-          </td>
           <td class="project_id">
             <%= render_strategic_projects('issue', random, row, issue.project_id) %>
+          </td>
+          <td class="assigned">
+            <% issue_project = Project.find(issue.project_id) rescue nil %>
+            <% options = issue_project ? options_from_collection_for_select(issue_project.users.order('firstname ASC'), "id", "name", issue.assigned_to_id) : nil %>
+            <%= select_tag "issue_topic[#{row}][assigned_to_id][]", options, {:style => "width:120px;", :id => "issue_topic_#{row}_assigned_to_id_#{random}", :include_blank => true}  %>
           </td>
           <td class="due_date">
             <%= date_field_tag "issue_topic[#{row}][due_date][]", issue.due_date, :size => 9, :id => "issue_topic_#{row}_due_date_#{random}", :class => 'issue_topic_due_date' %>
@@ -79,11 +83,11 @@
       <td class="subject" width="45%">
         <%= text_area_tag "issue_topic[#{params[:row]}][subject][]", "", :cols => 40, :rows => 2, :class => 'issue_topic_subject', :id => "issue_topic_#{params[:row]}_subject_#{random}" %>
       </td>
-      <td class="assigned">
-        <%= select_tag "issue_topic[#{params[:row]}][assigned_to_id][]", options_from_collection_for_select(@project.users.order('firstname ASC'), "id", "name"), {:style => "width:120px;", :id => "issue_topic_#{params[:row]}_assigned_to_id_#{random}", :include_blank => true}  %>
-      </td>
       <td class="project_id">
         <%= render_strategic_projects('issue', random, params[:row]) %>
+      </td>
+      <td class="assigned">
+        <%= select_tag "issue_topic[#{params[:row]}][assigned_to_id][]", nil, {:style => "width:120px;", :id => "issue_topic_#{params[:row]}_assigned_to_id_#{random}", :include_blank => true}  %>
       </td>
       <td class="due_date">
         <%= date_field_tag "issue_topic[#{params[:row]}][due_date][]", "", :size => 9, :id => "issue_topic_#{params[:row]}_due_date_#{random}", :class => 'issue_topic_due_date' %>

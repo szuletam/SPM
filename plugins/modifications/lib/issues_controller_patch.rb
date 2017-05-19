@@ -5,7 +5,7 @@ module IssuesControllerPatch
       helper 'checklists'
       helper :issues
       helper :imports
-      before_filter :authorize, :except => [:index, :new, :create, :get_done_ratio, :validate_recurrence, :validate_recurrence_for_committee, :table_row, :committee_data, :get_direction, :trackers_for_import, :attributes_for_import]
+      before_filter :authorize, :except => [:index, :new, :create, :get_done_ratio, :validate_recurrence, :validate_recurrence_for_committee, :table_row, :committee_data, :get_direction, :trackers_for_import, :attributes_for_import, :load_responsables]
       before_filter :get_time_entries, only: [:show]
 
       alias_method_chain :build_new_issue_from_params, :modification
@@ -28,6 +28,11 @@ module IssuesControllerPatch
 
     def committee_data
       render :json => (Committee.where(:name => params[:committee]).first rescue Committee.new)
+    end
+
+    def load_responsables
+      @project = Project.find(params[:project_id])
+      @select = params[:select]
     end
 
     def trackers_for_import
