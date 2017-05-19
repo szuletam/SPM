@@ -9,9 +9,6 @@
     padding: 0.5em 0 0.1em 0;
   }
 </style>
-<%= javascript_include_tag(:highcharts, :plugin => 'advanced') %>
-<%= javascript_include_tag(:exporting, :plugin => 'advanced') %>
-<%= javascript_include_tag("highcharts-more", :plugin => 'advanced') %>
 <h2><%= l(:label_advanced) %></h2>
 
 <div class="tabs">
@@ -20,10 +17,6 @@
     <li><a id="tab-users" onclick="showTab('users', this.href); this.blur(); return false;"><%=@report_title2%></a></li>
     <li><a id="tab-projects" onclick="showTab('projects', this.href); this.blur(); return false;"><%=@report_title3%></a></li>
   </ul>
-  <div class="tabs-buttons" style="display:none;">
-    <button class="tab-left" type="button" onclick="moveTabLeft(this);"></button>
-    <button class="tab-right" type="button" onclick="moveTabRight(this);"></button>
-  </div>
 </div>
 
 
@@ -32,21 +25,25 @@
     <%= render :partial => 'directions', :locals => { :data => @data, :field_name => @field, :rows => @rows, :data_delay => @data_delay } %>
   </div>
 </div>
-<div id="tab-content-users" class="tab-content" style="display: block;">
+<div id="tab-content-users" class="tab-content" style="display: none;">
   <div class="box tabular">
     <%= render :partial => 'users', :locals => { :data2 => @data2, :field_name => @field2, :rows2 => @rows2, :data_delay2 => @data_delay2 } %>
   </div>
 </div>
-<div id="tab-content-projects" class="tab-content" style="display: block;">
+<div id="tab-content-projects" class="tab-content" style="display: none;">
   <div class="box tabular">
     <%= render :partial => 'projects', :locals => { :data => @data3, :field_name => @field3, :rows => @rows3, :data_delay => @data_delay3 } %>
   </div>
 </div>
 
-
+<script type="text/javascript" charset="utf-8">
+    function export_xlsx(){
+        window.location.href = "<%= advanced_path(@project, :format => 'xlsx') %>?tab="+$('div.tabs a.selected').attr('id');
+    }
+</script>
 
 <%= link_to l(:button_back), project_issues_path(@project, filters_for_url) %>
 <br>
 <% other_formats_links do |f| %>
-    <%= f.link_to 'XLSX', :url => params %>
+    <a onclick="export_xlsx();return false">XLSX</a>
 <% end %>
