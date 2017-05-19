@@ -4,7 +4,7 @@
     overflow-y: auto !important;
     max-height: 370px;
   }
-  div.modal{
+  div.modal{|
     height: auto;
     top: 100px !important;
   }
@@ -39,8 +39,9 @@
             var selected = data.selected[0];
             if(selected != undefined && selected != '' && $('#'+selected).data('visible')){
                 var project_id = selected.replace('node_', '');
-                var url = '<%= projects_path %>/' + project_id;
-                window.location.replace(url);
+                var url = '';
+                if(project_id != '' && project_id != undefined) url = "?utf8=✓&set_filter=1&f[]=project_and_descendants&op[project_and_descendants]=%3D&v[project_and_descendants][]="+ project_id +"&f[]=";
+                window.location.replace("<%= url_for(summaries_path)%>" + url);
             }
         });
 
