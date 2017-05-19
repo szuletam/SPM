@@ -110,7 +110,7 @@ class AdvancedController < ApplicationController
     @rows2 = assigned.any? ? User.where(:id => assigned).sort: User.all.sort
 
     @field3 = "project_id"
-    @rows3 = projects.any? ? Project.where(:id => projects).sort: Project.all.sort
+    @rows3 = projects.any? ? Project.project_tree(Project.where(:id => projects)){|p| p}: Project.project_tree(Project.all){|p| p}
 
     if issues.any?
       @data =  AdvancedController.issues_by_direction(@project,issues) || []
