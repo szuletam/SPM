@@ -4,6 +4,7 @@ module SearchControllerPatch
     base.send(:include, InstanceMethods)          
     base.class_eval do
       alias_method_chain :index, :modification
+      alias_method_chain :find_optional_project, :modification
 	  end
   end
   module InstanceMethods
@@ -35,17 +36,18 @@ module SearchControllerPatch
         return
       end
 
-      projects_to_search =
-          case params[:scope]
-            when 'all'
-              nil
-            when 'my_projects'
-              User.current.projects
-            when 'subprojects'
-              @project ? (@project.self_and_descendants.active.to_a) : nil
-            else
-              @project
-          end
+      #@AIG: se deja igual a nil para que siempre sea una busqueda global
+      projects_to_search = nil
+      #    case params[:scope]
+      #      when 'all'
+      #        nil
+      #      when 'my_projects'
+      #        User.current.projects
+      #      when 'subprojects'
+      #        @project ? (@project.self_and_descendants.active.to_a) : nil
+      #      else
+      #        @project
+      #    end
 
       @object_types = Redmine::Search.available_search_types.dup
       if projects_to_search.is_a? Project
@@ -79,6 +81,10 @@ module SearchControllerPatch
         format.html { render :layout => false if request.xhr? }
         format.api  { @results ||= []; render :layout => false }
       end
+    end
+
+    def find_optional_project_with_modification
+      true
     end
   end
 end
