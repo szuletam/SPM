@@ -124,3 +124,15 @@ module AdvancedHelper
     } unless data.nil?
     a
   end
+
+  def tab_is_direction?
+    @tab == AdvancedController::TAB_DIRECTION
+  end
+
+  def tab_is_project?
+    @tab == AdvancedController::TAB_PROJECT
+  end
+
+  def tab_is_users?
+    @tab == AdvancedController::TAB_USERS
+  end

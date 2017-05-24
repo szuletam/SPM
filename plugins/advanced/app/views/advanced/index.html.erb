@@ -11,34 +11,75 @@
 </style>
 <h2><%= l(:label_advanced) %></h2>
 
+<%= form_tag({ :controller => 'advanced', :action => 'index'},
+             :method => :get, :id => 'query_form') do %>
+
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content" class="hide-when-print">
+      <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+        <legend onclick="toggleFieldset(this);">
+          <%= l(:label_filter_plural) %>
+        </legend>
+        <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+          <%= render :partial => 'advanced/filters_advanced', :locals => {:query => @query, :show_add_filters => true} %>
+        </div>
+      </fieldset>
+    </div>
+    <p class="buttons hide-when-print">
+
+      <%= link_to_function l(:button_apply), '$("#query_form").submit();', :class => 'icon icon-checked' %>
+      <%= link_to l(:button_clear), { :set_filter => 1 }, :class => 'icon icon-reload'  %>
+    </p>
+<% end %>
+
 <div class="tabs">
   <ul>
-    <li><a id="tab-directions" class="selected" onclick="showTab('directions', this.href); this.blur(); return false;"><%=@report_title%></a></li>
-    <li><a id="tab-users" onclick="showTab('users', this.href); this.blur(); return false;"><%=@report_title2%></a></li>
-    <li><a id="tab-projects" onclick="showTab('projects', this.href); this.blur(); return false;"><%=@report_title3%></a></li>
+    <li><a id="tab-directions" class="<% if tab_is_direction? %>selected<% end %>" onclick="go_tab('tab-directions'); return false;"><%=l(:field_direction)%></a></li>
+    <li><a id="tab-users" class="<% if tab_is_users? %>selected<% end %>" onclick="go_tab('tab-users'); return false;"><%=l(:field_assigned_to)%></a></li>
+    <li><a id="tab-projects" class="<% if tab_is_project? %>selected<% end %>" onclick="go_tab('tab-projects'); return false;"><%=l(:field_project)%></a></li>
   </ul>
 </div>
 
 
-<div id="tab-content-directions" class="tab-content" style="display: block;">
-  <div class="box tabular">
-    <%= render :partial => 'directions', :locals => { :data => @data, :field_name => @field, :rows => @rows, :data_delay => @data_delay } %>
-  </div>
+<div id="tab-content-directions" class="tab-content" style="display: <% if tab_is_direction? %>block<% else %>none<% end %>;">
+  <% if tab_is_direction? %>
+      <div class="box tabular">
+        <%= render :partial => 'directions', :locals => { :data => @data, :field_name => @field, :rows => @rows, :data_delay => @data_delay } %>
+      </div>
+  <% end %>
 </div>
-<div id="tab-content-users" class="tab-content" style="display: none;">
-  <div class="box tabular">
-    <%= render :partial => 'users', :locals => { :data2 => @data2, :field_name => @field2, :rows2 => @rows2, :data_delay2 => @data_delay2 } %>
-  </div>
+<div id="tab-content-users" class="tab-content" style="display: <% if tab_is_users? %>block<% else %>none<% end %>">
+  <% if tab_is_users? %>
+      <div class="box tabular">
+        <%= render :partial => 'users', :locals => { :data => @data, :field_name => @field, :rows => @rows, :data_delay => @data_delay } %>
+      </div>
+  <% end %>
 </div>
-<div id="tab-content-projects" class="tab-content" style="display: none;">
-  <div class="box tabular">
-    <%= render :partial => 'projects', :locals => { :data => @data3, :field_name => @field3, :rows => @rows3, :data_delay => @data_delay3 } %>
-  </div>
+<div id="tab-content-projects" class="tab-content" style="display: <% if tab_is_project? %>block<% else %>none<% end %>;">
+  <% if tab_is_project? %>
+    <div class="box tabular">
+      <%= render :partial => 'projects', :locals => { :data => @data, :field_name => @field, :rows => @rows, :data_delay => @data_delay } %>
+    </div>
+  <% end %>
 </div>
 
 <script type="text/javascript" charset="utf-8">
     function export_xlsx(){
-        window.location.href = "<%= advanced_path(@project, :format => 'xlsx') %>?tab="+$('div.tabs a.selected').attr('id');
+        var url = "<%= advanced_path(@project, {:format => 'xlsx'}.merge(filters_for_url)) %>";
+        if(url.search("\\?") >= 0){
+            window.location.href = url + "&tab=" + $('div.tabs a.selected').attr('id');
+        }else{
+            window.location.href = url + "?tab=" + $('div.tabs a.selected').attr('id');
+        }
+    }
+
+    function go_tab(tab){
+        var url = "<%= advanced_path(@project, filters_for_url) %>";
+        if(url.search("\\?") >= 0){
+            window.location.href = url + "&tab=" + tab;
+        }else{
+            window.location.href = url + "?tab=" + tab;
+        }
     }
 </script>
 

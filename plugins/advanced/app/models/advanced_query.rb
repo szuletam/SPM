@@ -30,26 +30,12 @@ class AdvancedQuery < IssueQuery
     principals.reject! {|p| p.is_a?(GroupBuiltin)}
     users = principals.select {|p| p.is_a?(User)}
 
-    add_available_filter "tracker_id",
-                         :type => :list, :values => trackers.collect{|s| [s.name, s.id.to_s] }
-
-    add_available_filter "priority_id",
-                         :type => :list, :values => IssuePriority.all.collect{|s| [s.name, s.id.to_s] }
-
     author_values = []
     author_values << ["<< #{l(:label_me)} >>", "me"] if User.current.logged?
     author_values += users.collect{|s| [s.name, s.id.to_s] }
     add_available_filter("author_id",
                          :type => :list, :values => author_values
     ) unless author_values.empty?
-
-    assigned_to_values = []
-    assigned_to_values << ["<< #{l(:label_me)} >>", "me"] if User.current.logged?
-    assigned_to_values += (Setting.issue_group_assignment? ?
-        principals : users).collect{|s| [s.name, s.id.to_s] }
-    add_available_filter("assigned_to_id",
-                         :type => :list_optional, :values => assigned_to_values
-    ) unless assigned_to_values.empty?
 
     group_values = Group.givable.visible.collect {|g| [g.name, g.id.to_s] }
     add_available_filter("member_of_group",
@@ -60,10 +46,6 @@ class AdvancedQuery < IssueQuery
     add_available_filter("assigned_to_role",
                          :type => :list_optional, :values => role_values
     ) unless role_values.empty?
-
-    add_available_filter "category_id",
-                         :type => :list_optional,
-                         :values => categories.collect{|s| [s.name, s.id.to_s] }
 
     add_available_filter "subject", :type => :text
     add_available_filter "description", :type => :text
@@ -85,12 +67,6 @@ class AdvancedQuery < IssueQuery
     if User.current.logged?
       add_available_filter "watcher_id",
                            :type => :list, :values => [["<< #{l(:label_me)} >>", "me"]]
-    end
-
-    if subprojects.any?
-      add_available_filter "project_and_descendants",
-                           :type => :list_subprojects,
-                           :values => subprojects.collect{|s| [s.name, s.id.to_s] }
     end
 
     add_custom_fields_filters(issue_custom_fields)
