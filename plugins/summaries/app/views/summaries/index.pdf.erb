@@ -1,0 +1,13 @@
+<% my_project = params[:v] && params[:v][:project_and_descendants] && params[:v][:project_and_descendants][0] ? params[:v][:project_and_descendants][0] : '' %>
+<% title = '' %>
+<% if my_project != '' %>
+    <% title = Project.find(my_project).name %>
+<% elsif @for_general %>
+    <% title = l(:field_lua) %>
+<% elsif @for_direction %>
+    <% title = @for_direction.name %>
+<% elsif @for_user %>
+    <% title = @for_user.name %>
+<% end %>
+
+<%= raw summaries_to_pdf(@data, title) %>

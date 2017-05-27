@@ -214,6 +214,10 @@
     </p>
 <% end %>
 
+<% other_formats_links do |f| %>
+    <%= f.link_to 'PDF', :url => params.merge({:format => 'pdf'}) %>
+<% end %>
+
 <script type="text/javascript" charset="utf-8">
   $( document ).ready(function(){
       $('#div_project_quick_jump_box').hide();

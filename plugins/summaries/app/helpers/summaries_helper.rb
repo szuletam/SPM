@@ -1,5 +1,7 @@
 module SummariesHelper
 
+  include Redmine::Export::PDF::SummariesPdfHelper
+
   def filters_for_url(manual_filters = {})
     fields = [""]
     operators = {}
