@@ -91,7 +91,7 @@ module Redmine
           pdf.set_xy(val_x, pdf.get_y)
 
           #se agregan los rectangulos de la segunda fila
-          set_rectangle(pdf, @data[:tro].length.to_s, "#{l(:pending_close)}<br>#{l(:label_tasks_opened)}", [0,0,0], rectangle)
+          set_rectangle(pdf, @data[:tro].length.to_s, "#{l(:pending_close)}<br>#{l(:label_tasks_opened)}", [255,0,0], rectangle)
           set_rectangle(pdf, @data[:tro7].length.to_s, "#{l(:pending_close)}<br>#{l(:label_due_on_7)}", [255,140,0], rectangle)
           set_rectangle(pdf, @data[:tro8].length.to_s, "#{l(:pending_close)}<br>#{l(:label_due_on_8)}", [0,170,0], rectangle)
           set_rectangle(pdf, @data[:tro30].length.to_s, "#{l(:pending_close)}<br>#{l(:label_due_on_30)}", [146,146,146], rectangle, true)
