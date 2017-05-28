@@ -136,7 +136,7 @@ class SummariesController < ApplicationController
     end
 
     respond_to do |format|
-      format.html { render :template => 'summaries/index', :layout => !request.xhr? }
+      format.html
       format.pdf  { send_file_headers! :type => 'application/pdf', :filename => 'scrum.pdf' }
     end
 
