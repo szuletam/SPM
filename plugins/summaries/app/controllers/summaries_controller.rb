@@ -39,13 +39,17 @@ class SummariesController < ApplicationController
   end
 
   def get_users user
-    if user.admin? || user.general?
-      User.active.visible.where(:id => Member.select(:user_id).map(&:user_id).uniq).order(:firstname, :lastname)
-    elsif user.director?
-      User.active.visible.where(:id => Member.select(:user_id).map(&:user_id).uniq).where(:direction => user.direction).order(:firstname, :lastname)
-    else
-      [User.current]
-    end
+    visible_users =
+        if user.admin? || user.general?
+          User.active.visible.where(:id => Member.select(:user_id).map(&:user_id).uniq).order(:firstname, :lastname)
+        elsif user.director?
+          User.active.visible.where(:id => Member.select(:user_id).map(&:user_id).uniq).where(:direction => user.direction).order(:firstname, :lastname)
+        else
+          [User.current]
+        end
+    users = (visible_users + user.subalterns).uniq
+    User.where(:id => users.select{|u| !u.nil?}.map{|u| u.id}).order(:firstname, :lastname)
+
   end
 
   def index
