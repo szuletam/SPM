@@ -632,6 +632,12 @@ class User < Principal
       # Admin users are authorized for anything else
       return true if admin?
 
+      if action.is_a?(Hash)
+        return true if boss?(context) && action[:action] != 'settings'
+      elsif action.is_a?(Symbol)
+        return true if boss?(context) && action != :edit_project
+      end
+
       roles = roles_for_project(context)
       return false unless roles
       roles.any? {|role|

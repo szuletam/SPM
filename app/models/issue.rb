@@ -135,9 +135,16 @@ class Issue < ActiveRecord::Base
           my_projects.each do |p|
             owner_projects += p.self_and_descendants
           end
-
           where_owner_projects = owner_projects.any? ? " OR #{table_name}.project_id IN (#{owner_projects.map{|p| p.id}.join(',')})" : ""
-          "(#{table_name}.author_id = #{user.id} OR #{table_name}.assigned_to_id IN (#{user_ids.join(',')})) #{issues_my_direction} #{where_owner_projects}"
+
+          projects_subalterns = user.projects_subalterns
+          subalterns = user.subalterns
+          where_boss = ''
+          if subalterns.any? && projects_subalterns.any?
+            where_boss = " OR (#{table_name}.project_id IN (#{projects_subalterns.map{|p| p.id}.join(',')}) AND #{table_name}.assigned_to_id IN (#{subalterns.map{|u| u.id if u}.join(',')}))"
+          end
+
+          "(#{table_name}.author_id = #{user.id} OR #{table_name}.assigned_to_id IN (#{user_ids.join(',')})) #{issues_my_direction} #{where_owner_projects} #{where_boss}"
         else
           '1=0'
         end

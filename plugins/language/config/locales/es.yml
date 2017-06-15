@@ -353,6 +353,7 @@ es:
   field_project_and_descendants: "Proyecto e hijos"
   button_update_easy_settings: "Guardar Configuración"
   label_jump_to_a_project_short: "Proyecto"
+  field_position: "Posición o cargo"
   field_make_click_for_detail: "Hacer Click en cada casilla para ver detalle"
   label_text_after_users_pdf: "Las presentaciones están disponibles en el e.room del comité ejecutivo, el cual encuentran en:\n
   DECLIC -> LES ESSENTIELS -> Workspaces.\n

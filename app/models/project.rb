@@ -204,7 +204,12 @@ class Project < ActiveRecord::Base
       end
       user.projects_by_role.each do |role, projects|
         if role.allowed_to?(permission) && projects.any?
-          statement_by_role[role] = "#{Project.table_name}.id IN (#{projects.collect(&:id).join(',')})"
+          projects_subalterns = user.projects_subalterns
+          where_boss = ''
+          if projects_subalterns.any?
+            where_boss = " OR (#{Project.table_name}.id IN (#{projects_subalterns.map{|p| p.id}.join(',')}))"
+          end
+          statement_by_role[role] = "(#{Project.table_name}.id IN (#{projects.collect(&:id).join(',')}) #{where_boss})"
         end
       end
       if statement_by_role.empty?

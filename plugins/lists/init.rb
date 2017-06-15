@@ -7,6 +7,8 @@ Redmine::Plugin.register :lists do
   author_url 'http://aigroup.com.co'
   
   menu :admin_menu, :directions, { :controller => 'directions', :action => 'index' }, :caption => :label_directions
+  
+  menu :admin_menu, :positions, { :controller => 'positions', :action => 'index' }, :caption => :label_positions
 
   menu :admin_menu, :committees, { :controller => 'committees', :action => 'index' }, :caption => :label_committees
 

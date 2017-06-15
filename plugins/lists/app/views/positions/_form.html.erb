@@ -1,0 +1,13 @@
+<%= error_messages_for 'position' %>
+
+
+<!--[form:position]-->
+<div class="box tabular">
+  <p><%= f.text_field :boss_id, :required => false %></p>
+  <p><%= f.text_field :position_id, :required => true %></p>
+</div>
+<div style="clear:left;"></div>
+<!--[eoform:position]-->
+<%= javascript_tag do %>
+
+<% end %>
