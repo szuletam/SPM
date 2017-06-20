@@ -13,6 +13,8 @@ match '/issues/get_direction', :to => 'issues#get_direction', :action => 'get_di
 match '/issues/load_responsables', :to => 'issues#load_responsables', :action => 'load_responsables', :as => 'issue_load_responsables', :via => [:get, :post]
 match '/issues/trackers_for_import', :to => 'issues#trackers_for_import', :action => 'trackers_for_import', :as => 'issue_trackers_for_import', :via => [:get, :post]
 match '/issues/attributes_for_import', :to => 'issues#attributes_for_import', :action => 'attributes_for_import', :as => 'issue_attributes_for_import', :via => [:get, :post]
+match '/user/import', :to => 'users#import', :action => 'import', :as => 'users_import', :via => [:get, :post]
+match '/user/import_positions', :to => 'users#import_positions', :action => 'import_positions', :as => 'users_import_positions', :via => [:get, :post]
 resources :issues do
   resources :checklists, :only => [:index, :create]
 end

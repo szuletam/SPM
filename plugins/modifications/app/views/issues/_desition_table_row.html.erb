@@ -8,7 +8,7 @@
       <% random = issues["random"] && issues["random"][i] ? issues["random"][i] : rand(999999)%>
       <tr id="desition_topic_<%= row %>_<%= random %>">
         <td class="subject" width="45%">
-          <%= text_area_tag "desition_topic[#{row}][subject][]", issues["subject"][i], :cols => 40, :rows => 2, :class => 'desition_topic_subject', :id => "desition_topic_#{params[:row]}_subject_#{random}"   %>
+          <%= text_area_tag "desition_topic[#{row}][subject][]", issues["subject"][i], :cols => 40, :rows => 2, :class => 'desition_topic_subject', :id => "desition_topic_#{params[:row_excel]}_subject_#{random}"   %>
           <% if issues["id"].present? && !issues["id"].blank?%>
               <%= hidden_field_tag "desition_topic[#{row}][id][]", issues["id"][i]%>
           <% end %>
@@ -43,7 +43,7 @@
         <% random = rand(999999)%>
         <tr id="desition_topic_<%= row %>_<%= random %>">
           <td class="subject" width="45%">
-            <%= text_area_tag "desition_topic[#{row}][subject][]", issue.subject, :cols => 40, :rows => 2, :class => 'desition_topic_subject', :id => "desition_topic_#{params[:row]}_subject_#{random}"   %>
+            <%= text_area_tag "desition_topic[#{row}][subject][]", issue.subject, :cols => 40, :rows => 2, :class => 'desition_topic_subject', :id => "desition_topic_#{params[:row_excel]}_subject_#{random}"   %>
             <%= hidden_field_tag "desition_topic[#{row}][id][]", issue.id %>
           </td>
           <td class="project_id">
@@ -71,18 +71,18 @@
     <% random = rand(999999)%>
     <%issue = Issue.new(:project_id => Project.active.where(:id => @project.parent.descendants.map{|d| d.id.to_s}).first.id, :tracker_id => 5 )%>
     <% allowed_statuses = issue.new_statuses_allowed_to(User.current)%>
-    <tr id="desition_topic_<%= params[:row] %>_<%= random %>">
+    <tr id="desition_topic_<%= params[:row_excel] %>_<%= random %>">
       <td class="subject" width="45%">
-        <%= text_area_tag "desition_topic[#{params[:row]}][subject][]", "", :cols => 40, :rows => 2, :class => 'desition_topic_subject', :id => "desition_topic_#{params[:row]}_subject_#{random}" %>
+        <%= text_area_tag "desition_topic[#{params[:row_excel]}][subject][]", "", :cols => 40, :rows => 2, :class => 'desition_topic_subject', :id => "desition_topic_#{params[:row_excel]}_subject_#{random}" %>
       </td>
       <td class="project_id">
-        <%= render_strategic_projects('desition', random, params[:row]) %>
+        <%= render_strategic_projects('desition', random, params[:row_excel]) %>
       </td>
       <td class="due_date">
-        <%= date_field_tag "desition_topic[#{params[:row]}][due_date][]", "", :size => 9, :id => "desition_topic_#{params[:row]}_due_date_#{random}", :class => 'desition_topic_due_date' %>
-        <%= calendar_for("desition_topic_#{params[:row]}_due_date_#{random}") %>
-        <%= hidden_field_tag "desition_topic[#{params[:row]}][random][]", random %>
-        <%= hidden_field_tag "desition_topic[#{params[:row]}][desition][]", 1 %>
+        <%= date_field_tag "desition_topic[#{params[:row_excel]}][due_date][]", "", :size => 9, :id => "desition_topic_#{params[:row_excel]}_due_date_#{random}", :class => 'desition_topic_due_date' %>
+        <%= calendar_for("desition_topic_#{params[:row_excel]}_due_date_#{random}") %>
+        <%= hidden_field_tag "desition_topic[#{params[:row_excel]}][random][]", random %>
+        <%= hidden_field_tag "desition_topic[#{params[:row_excel]}][desition][]", 1 %>
       </td>
       <td width="1%">
         <% if issue.new_record? && User.current.allowed_to?(:create_recurrent_issue, @issue.project) %>
@@ -92,7 +92,7 @@
 
       <td width="1%">
         <%= link_to_function(image_tag('delete.png', :style => 'vertical-align: middle;', :title => l(:label_delete_desition_topic)),
-                             "del_topic_issue('desition_topic_#{params[:row]}_#{random}');") %>
+                             "del_topic_issue('desition_topic_#{params[:row_excel]}_#{random}');") %>
       </td>
     </tr>
 <%end%>

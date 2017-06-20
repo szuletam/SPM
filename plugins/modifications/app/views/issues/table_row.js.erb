@@ -1,5 +1,5 @@
 <% if @issue.tracker_id && @issue.tracker_id.to_i == 5 %>
-  $('#tbody_desition_<%= params[:row]%>').append('<%= escape_javascript(render :partial => 'issues/desition_table_row', :locals => {:desition_topics => nil }) %>');
+  $('#tbody_desition_<%= params[:row_excel]%>').append('<%= escape_javascript(render :partial => 'issues/desition_table_row', :locals => {:desition_topics => nil }) %>');
 <% else %>
-  $('#tbody_<%= params[:row]%>').append('<%= escape_javascript(render :partial => 'issues/issue_table_row', :locals => {:issue_topics => nil }) %>');
+  $('#tbody_<%= params[:row_excel]%>').append('<%= escape_javascript(render :partial => 'issues/issue_table_row', :locals => {:issue_topics => nil }) %>');
 <% end %>

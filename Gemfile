@@ -16,6 +16,7 @@ gem "actionpack-action_caching"
 gem "actionpack-xml_parser"
 gem "roadie-rails"
 gem "mimemagic"
+gem "roo"
 
 # EXCEL
 gem 'rubyzip'

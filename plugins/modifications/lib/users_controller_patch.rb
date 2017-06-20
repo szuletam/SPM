@@ -1,3 +1,4 @@
+require 'roo'
 module UsersControllerPatch
 	def self.included(base) # :nodoc:
 		base.send(:include, InstanceMethods)
@@ -8,6 +9,38 @@ module UsersControllerPatch
 		end
 	end
 	module InstanceMethods
+		def import
+		end
+
+		def import_positions
+			unless params[:attachment]
+				render_error({:message => :notice_file_not_found, :status => 404})
+				return
+			end
+			spreadsheet = open_spreadsheet(params[:attachment])
+			header = spreadsheet.row(1)
+			data = {}
+			(2..spreadsheet.last_row).each do |i|
+				row = Hash[[header, spreadsheet.row(i)].transpose]
+				row['row_excel'] = i
+				data[row['position_id']] = row
+
+			end
+			token = UserImport.validate_import(data)
+			@errors = UserImport.get_errors
+			UserImport.merge_data(token) unless @errors.any?
+			UserImport.clean_import token
+		end
+
+			def open_spreadsheet(file)
+				case File.extname(file.original_filename)
+					when ".csv" then Csv.new(file.path, nil, :ignore)
+					when ".xls" then Roo::Excel.new(file.path, nil, :ignore)
+					when ".xlsx" then Roo::Excelx.new(file.path, nil, :ignore)
+					else raise "Unknown file type: #{file.original_filename}"
+				end
+			end
+
 		def show_with_modification
 
 			unless @user.visible?
@@ -33,6 +66,7 @@ module UsersControllerPatch
 		end
 
 		def create_with_modification
+			raise params.inspect
 			@user = User.new(:language => Setting.default_language, :mail_notification => Setting.default_notification_option)
 			@user.safe_attributes = params[:user]
 			@user.admin = params[:user][:admin] || false

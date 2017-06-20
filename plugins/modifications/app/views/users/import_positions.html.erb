@@ -1,0 +1,36 @@
+<div class="contextual">
+  <%= link_to l(:label_see_users), users_path, :class => 'icon icon-user' %>
+  <%= link_to l(:go_back_to_export), users_import_path, :class => 'icon icon-directions' %>
+</div>
+
+<h2><%= l(:label_import_results)%></h2>
+
+<% if @errors.any? %>
+    <h4><%= l(:list_errors) %></h4>
+    <table class="list" width="40%">
+      <thead>
+      <tr>
+        <th><%= l(:label_row) %></th>
+        <th><%= l(:label_errors) %></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @errors.each do |row, errors| %>
+          <tr>
+            <td><%= row %></td>
+            <td>
+              <ul>
+                <% errors.each do |error| %>
+                    <li><%= error %></li>
+                <% end %>
+              </ul>
+            </td>
+          </tr>
+      <% end %>
+      </tbody>
+    </table>
+<% else %>
+    <h4><%= l(:all_import_succes) %></h4>
+<% end %>
+
+

@@ -1,0 +1,16 @@
+<h2><%= l(:label_import_positions)%></h2>
+
+<p><%= l(:label_import_description)%></p>
+<p><%= l(:label_import_description2)%></p>
+<p><%= l(:label_import_description3)%></p>
+<p><%= l(:label_import_description4)%></p>
+
+<%= form_tag users_import_positions_path, :multipart => true do %>
+    <div>
+      <%= file_field_tag  :attachment %>
+    </div>
+    <br>
+    <div>
+      <%= submit_tag l(:label_import) %>
+    </div>
+<% end %>

@@ -8,12 +8,6 @@ module ContextMenusListsPatch
 			@direction = Direction.find(@id)
 			render :layout => false
 		end
-
-		def positions
-			@id = params[:ids]
-			@position = Direction.find(@id)
-			render :layout => false
-		end
 		
 		def committees
 			@id = params[:ids]
