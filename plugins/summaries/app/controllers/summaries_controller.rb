@@ -49,7 +49,6 @@ class SummariesController < ApplicationController
         end
     users = (visible_users + user.subalterns).uniq
     User.where(:id => users.select{|u| !u.nil?}.map{|u| u.id}).order(:firstname, :lastname)
-
   end
 
   def index

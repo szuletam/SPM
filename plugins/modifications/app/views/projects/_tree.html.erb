@@ -48,7 +48,7 @@
         //Add para cerrar modal a dar clic fuera de la ventana
         $('body').click(function (event)
         {
-            if(!$(event.target).closest('.ui-dialog').length && !$(event.target).is('.ui-dialog') && $('.ui-dialog').is(':visible') && !$(event.target).closest('#quick-search').length && !$(event.target).is('#quick-search') && !$(event.target).closest('#recurrent_issue').length && !$(event.target).is('#recurrent_issue') && !$(event.target).closest('.csv').length && !$(event.target).is('.csv') && !$(event.target).closest('.topic_counter').length && !$(event.target).is('.topic_counter')) {
+            if(!$(event.target).closest('.ui-dialog').length && !$(event.target).is('.ui-dialog') && $('.ui-dialog').is(':visible') && !$(event.target).closest('#quick-search').length && !$(event.target).is('#quick-search') && !$(event.target).closest('#button_for_project').length && !$(event.target).is('#button_for_project') && !$(event.target).closest('#recurrent_issue').length && !$(event.target).is('#recurrent_issue') && !$(event.target).closest('.csv').length && !$(event.target).is('.csv') && !$(event.target).closest('.topic_counter').length && !$(event.target).is('.topic_counter')) {
                 $('.ui-dialog-content').dialog('close');
             }
         });

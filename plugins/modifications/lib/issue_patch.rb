@@ -313,10 +313,10 @@ module IssuePatch
     def css_classes_with_modification(user=User.current)
 
       if is_delayed? && !self.status.is_closed?
-        self.priority = IssuePriority.find(getHighPripority)
+        @color = 'priority-highest'
       end
 
-      s = "issue tracker-#{tracker_id} status-#{status_id} #{priority.try(:css_classes)}"
+      s = "issue tracker-#{tracker_id} status-#{status_id} #{@color}"
       s << ' closed' if closed?
       s << ' overdue' if overdue?
       s << ' child' if child?

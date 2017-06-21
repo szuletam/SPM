@@ -1,0 +1,27 @@
+<%= form_tag({}) do -%>
+<%= hidden_field_tag 'back_url', url_for(params) %>
+<div class="autoscroll">
+<table class="list positions">
+<thead>
+  <tr>
+    <% @query.inline_columns.each do |column| %>
+      <%= column_header(column) %>
+    <% end %>
+   
+  </tr>
+</thead>
+<tbody>
+<% positions.each do |position| -%>
+  <tr class="position <%= cycle("odd", "even") %> hascontextmenu ">
+    <td class="checkbox hide-when-print" style="display:none;"><%= check_box_tag("ids[]", position.id, false, :id => nil) %></td>
+    <%= raw @query.inline_columns.map {|column|
+			"<td class=\"#{column.name}\" style=\"text-align: right\">&nbsp;&nbsp;&nbsp;#{column_content_positions(column, position)}</td>"
+	}.join %>
+  </tr>
+<% end -%>
+</tbody>
+</table>
+</div>
+<% end -%>
+<%= context_menu positions_context_menu_path %>
+

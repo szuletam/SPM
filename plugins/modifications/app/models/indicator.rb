@@ -28,15 +28,26 @@ class Indicator
       elsif self.total_hours.to_f <= 0 || issue['estimated_hours'].nil?
         self.realized += ((issue['done_ratio'].to_f / tmp_total) rescue 0)
       end
-
     end
 
-    if @maxdate.nil? || @mindate.nil?
-      self.expected = 0
-    else
-      arr_project = {"start_date" => @mindate, "due_date" => @maxdate}
-      self.expected = star_mto_to_mto_due(arr_project, today)
+    #@AIG: Ajuste para el cáculo del porcentaje esperado para actividades sin tiempo estimado
+    tmp_total = 0
+    tmp_total = self.issues.size
+    self.issues.each do |issue|
+      if !issue['due_date'].nil? && issue['due_date'] < today
+        expected_value += 1
+      end
     end
+    expected_value = ((expected_value.to_f/tmp_total)*100 rescue 0)
+    self.expected = (expected_value.nil? || expected_value.nan?)? 0: expected_value
+
+    #@AIG: Se comenta sección original para calculo con horas
+    #if @maxdate.nil? || @mindate.nil?
+    #  self.expected = 0
+    #else
+    #  arr_project = {"start_date" => @mindate, "due_date" => @maxdate}
+    #  self.expected = star_mto_to_mto_due(arr_project, today)
+    #end
 
     self.realized = 100 if self.realized > 100
     self.fulfillmen = ((self.realized / self.expected)*100).to_f.round(2) if self.expected > 0
@@ -62,6 +73,7 @@ class Indicator
   end
 
   def star_mto_to_mto_due(issue, today)
+
     @planned_day = business_days(issue['start_date'],issue['due_date'])
     @today_days = business_days(issue['start_date'], today)
     @planned_day = @planned_day.to_s
@@ -72,10 +84,10 @@ class Indicator
     @today_days = @today_days
     expected_value = ((@today_days.to_f/@planned_day.to_f)*100).round(2)
     if  expected_value > 100
-      expected_value = 100
+     expected_value = 100
     end
     if issue['start_date'].to_date > today
-      expected_value = 0
+     expected_value = 0
     end
     return expected_value
   end

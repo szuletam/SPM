@@ -95,7 +95,7 @@
         </label>
         <%= text_field_tag 'q', @question, :size => 20, :class => 'small', :accesskey => accesskey(:quick_search) %>
         <% end %>
-        <%= render :partial => 'projects/tree' unless params["controller"] == 'summaries' %>
+        <%= render :partial => 'projects/tree' %>
         <%#= render_project_jump_box %>
     </div>
     <% end %>

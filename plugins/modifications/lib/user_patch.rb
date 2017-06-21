@@ -3,7 +3,7 @@ module UserPatch
 	base.send(:include, InstanceMethods)          
 		base.class_eval do
 			include Redmine::SafeAttributes
-			safe_attributes 'direction_id', 'director', 'general', 'position_id', 'boss_id'
+			safe_attributes 'direction_id', 'director', 'general', 'expiration_alert', 'position_id', 'boss_id'
 			belongs_to :direction
 			belongs_to :parent, :class_name => 'User', :foreign_key => 'boss_id', :primary_key => 'position_id', :inverse_of => :children
 			has_many :children, :class_name => 'User', :foreign_key => 'boss_id', :primary_key => 'position_id', :inverse_of => :parent
@@ -21,7 +21,6 @@ module UserPatch
 		end
   end
   module InstanceMethods
-
 		def projects_subalterns
 			projects = []
 			subalterns.each do |user|

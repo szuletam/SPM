@@ -371,3 +371,4 @@ es:
   label_text_after_users_pdf: "Las presentaciones están disponibles en el e.room del comité ejecutivo, el cual encuentran en:\n
   DECLIC -> LES ESSENTIELS -> Workspaces.\n
   http://renault-workspace.share.renault.fr/gna/proj2773/Comite%20Ejecutivo%20RenaultSOFASA/Forms/AllItems.aspx"
+  field_expiration_alert: "Alertar vencimiento de tareas"

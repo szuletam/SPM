@@ -256,8 +256,8 @@ module IssuesControllerPatch
   module InstanceMethods
     def index_with_modification
       retrieve_query
-      sort_init(@query.sort_criteria.empty? ? [['start_date', 'desc']] : @query.sort_criteria)
-      sort_update(@query.sortable_columns)
+      sort_name = sort_init(@query.sort_criteria.empty? ? [['due_date', 'asc']] : @query.sort_criteria)
+      sort_update(@query.sortable_columns,sort_name)
       @query.sort_criteria = sort_criteria.to_a
 
       if @query.valid?
@@ -544,6 +544,10 @@ module IssuesControllerPatch
           issue.due_date = Date.today.to_s if issue.due_date.blank?
         end
 
+        #@AIG: Ajuste para limpiar fecha de cumplimiento al rechazar tareas
+        if issue.status_id && issue.status_id == 9
+          issue.compliance_date = ''
+        end
 
         if issue.save
           saved_issues << issue

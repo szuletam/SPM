@@ -70,11 +70,14 @@ class WhiningMailer < Mailer
 
 	#@AIG: Validación para cálculo de días
 	time = Time.now
-	if time.wday == '5'
+	if time.wday.to_s == '5'
 		@temp = (time + 259200).strftime("%Y-%m-%d")
-		if !WhiningMailer.valid_day?(@temp)
-			@temp = (time + 345600).strftime("%Y-%m-%d")
-		end
+		#if WhiningMailer.valid_day?(@temp)
+		#	logger.fatal "Fechaaaaaaaaaa -------------- Valido"
+		#else
+		#	logger.fatal "Fechaaaaaaaaaa -------------- No Valido"
+		#	@temp = (time + 345600).strftime("%Y-%m-%d")
+		#end
 		condition = " #{Project.table_name}.status = 1 AND users.status = 1 AND #{IssueStatus.table_name}.is_closed = #{false} AND (#{Issue.table_name}.due_date = '#{Date.tomorrow.to_s}' OR #{Issue.table_name}.due_date = '#{@temp.to_s}') AND #{Issue.table_name}.assigned_to_id IS NOT NULL"
 	else
 		condition = " #{Project.table_name}.status = 1 AND users.status = 1 AND #{IssueStatus.table_name}.is_closed = #{false} AND #{Issue.table_name}.due_date = '#{Date.tomorrow.to_s}' AND #{Issue.table_name}.assigned_to_id IS NOT NULL"
@@ -87,32 +90,15 @@ class WhiningMailer < Mailer
 	  next if assignee.nil?
 
 	  #next if Setting.exclude_for_whining_mail.include?(assignee.id.to_s)
-		next if assignee.mail_notification.to_s == 'only_assigned'
-	  
-	  whining(assignee, issues, days).deliver unless assignee.nil? # send email
+		if assignee.expiration_alert
+			logger.info "Fechaaaaaaaaaa -------- #{Date.tomorrow.to_s.inspect}"
+			logger.info "Asignadooooo -------- #{assignee.name.inspect}"
+			whining(assignee, issues, days).deliver unless assignee.nil? # send email
+	  end
+
 	  
 	end
-	
-	#admins = Member.joins("join member_roles on member_roles.member_id=members.id AND member_roles.role_id IN(#{roles.join(',')})
-	#								   join users on users.id=members.user_id AND users.status = 1").
-	#					  group("user_id")
-	#admins.each do |admin|
 
-	#issues_no_end = Issue.joins([:status, :assigned_to, :project,:tracker])
-	#								.where(["due_date < current_date() AND issue_statuses.is_closed= ? AND projects.status= ? AND projects.id in(SELECT project_id FROM members WHERE user_id= ?)",false, true, admin.user_id])
-		#							    .order(:due_date)
-
-		#next if Setting.exclude_for_whining_mail.include?(admin.id.to_s)
-
-		#whining_admin(admin, issues_no_end).deliver # send email
-
-
-	#end
-
-
-
-
-	 
   end
   
 

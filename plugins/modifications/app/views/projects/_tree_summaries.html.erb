@@ -1,9 +1,5 @@
 <%= stylesheet_link_tag "jstree/themes/default/style.min.css" %>
 <style>
-  div.cuerpo_modal{
-    overflow-y: auto !important;
-    max-height: 370px;
-  }
   body.controller-summaries div.modal{
     max-height: 410px;
     top: 100px !important;
@@ -18,7 +14,7 @@
 <div id="TreeModal" style="display:none;">
   <h3 class="title"><%= l(:label_jump_to_a_project_short) %></h3>
   <!-- 3 setup a container element -->
-  <div id="jstree" class="cuerpo_modal">
+  <div id="jstree2" class="cuerpo_modal">
     <!-- in this example the tree is populated from inline HTML -->
     <ul>
       <% Project.roots.active.each do |project|%>
@@ -37,7 +33,7 @@
 <script>
     $(function () {
         // 6 create an instance when the DOM is ready
-        $('#jstree').jstree();
+        $('#jstree2').jstree();
 
         $.each($('li[role="treeitem"][data-visible="true"]').find('a i'), function () {
             $(this).removeClass('jstree-themeicon');//se cambia el icono de carpeta a el icono de proyectos
@@ -45,19 +41,11 @@
         });
 
         // 7 bind to events triggered on the tree
-        $('#jstree').on("changed.jstree", function (e, data) {
+        $('#jstree2').on("changed.jstree2", function (e, data) {
             var selected = data.selected[0];
             if(selected != undefined && selected != '' && $('#'+selected).data('visible')){
                 var project_id = selected.replace('node_', '');
                 reloadSummariesForProject(project_id);
-            }
-        });
-
-        //Add para cerrar modal a dar clic fuera de la ventana
-        $('body').click(function (event)
-        {
-            if(!$(event.target).closest('.ui-dialog').length && !$(event.target).is('.ui-dialog') && $('.ui-dialog').is(':visible') && !$(event.target).closest('#button_for_project').length && !$(event.target).is('#button_for_project') && !$(event.target).closest('.csv').length && !$(event.target).is('.csv') && !$(event.target).closest('.topic_counter').length && !$(event.target).is('.topic_counter')) {
-                $('.ui-dialog-content').dialog('close');
             }
         });
     });

@@ -79,6 +79,7 @@
   <p>
     <% compliance_required = ( (params[:issue] && params[:issue][:status_id] && params[:issue][:status_id].to_s == '5') || (@issue.status_id && @issue.status_id.to_s == '5') ) %>
     <% compliance_value = ((params[:issue] && params[:issue][:compliance_date] && params[:issue][:compliance_date] != '') ? params[:issue][:compliance_date] : ( (@issue.status_id && @issue.compliance_date) ? @issue.compliance_date.to_s : ( compliance_required ? Date.today.to_s : ''))) %>
+    <% compliance_value = ((@issue.status_id.to_s == '9') ? '': compliance_value) %>
     <%= f.date_field(:compliance_date, :size => 10, :required => compliance_required, :value => compliance_value) %>
     <%= calendar_for('issue_compliance_date') if @issue.leaf? %>
   </p>

@@ -31,10 +31,22 @@
         window.location.replace("<%= url_for(summaries_path)%>" + url);
     }
 </script>
-<% if  Project.visible.any? %>
-<div class="contextual">
-  <%= link_to l(:label_issue_new), issues_new_path, :class => 'icon icon-add' %>
-</div>
+
+<% #@AIG: Ajuste para ocultar botón nueva tarea cuando no se tiene el permiso adecuado %>
+<% if User.current.admin %>
+    <div class="contextual">
+      <%= link_to l(:label_issue_new), issues_new_path, :class => 'icon icon-add' %>
+    </div>
+<% else if Project.visible.any?
+          Project.visible.map{|p|
+            if User.current.allowed_to?(:add_issues, p) %>
+                <div class="contextual">
+                  <%= link_to l(:label_issue_new), issues_new_path, :class => 'icon icon-add' %>
+                </div>
+            <% break
+               end
+               } %>
+    <% end %>
 <% end %>
 <h2><%= l(:label_scrum)%></h2>
 
@@ -81,7 +93,7 @@
       <div class="col-md-2">
         <h2 class="summary-title"><%= l(:label_tasks_opened) %></h2>
         <% if @data[:ta].any? %>
-            <p><%= link_to @data[:ta].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "due_date" => {:operator => "*"}, "status_id" => {:operator => "=", :values => [1] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})) %></p>
+            <p><%= link_to @data[:ta].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "due_date" => {:operator => "*"}, "status_id" => {:operator => "=", :values => [1,9] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})) %></p>
         <% else %>
             <p style="color: #000000">0</p>
         <% end %>
@@ -89,7 +101,7 @@
       <div class="col-md-2">
         <h2 class="summary-title"><%= l(:label_tasks_delayeds) %></h2>
         <% if @data[:tr].any? %>
-            <p><%= link_to @data[:tr].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF0000" %></p>
+            <p><%= link_to @data[:tr].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1,9] },"due_date" => {:operator => "<=", :values => [(Date.today - 1).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF0000" %></p>
         <% else %>
             <p style="color: #FF0000">0</p>
         <% end %>
@@ -97,7 +109,7 @@
       <div class="col-md-2">
         <h2 class="summary-title"><%= l(:label_due_on_7) %></h2>
         <% if @data[:tr7].any? %>
-            <p><%= link_to @data[:tr7].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => "><", :values => [(Date.today).to_s,(Date.today + 7).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF8C00" %></p>
+            <p><%= link_to @data[:tr7].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1,9] },"due_date" => {:operator => "><", :values => [(Date.today).to_s,(Date.today + 7).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #FF8C00" %></p>
         <% else %>
             <p style="color: #FF8C00">0</p>
         <% end %>
@@ -105,7 +117,7 @@
       <div class="col-md-2">
         <h2 class="summary-title"><%= l(:label_due_on_8) %></h2>
         <% if @data[:tr8].any? %>
-            <p><%= link_to @data[:tr8].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => "><", :values => [(Date.today + 8).to_s,(Date.today + 30).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #00AA00" %></p>
+            <p><%= link_to @data[:tr8].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1,9] },"due_date" => {:operator => "><", :values => [(Date.today + 8).to_s,(Date.today + 30).to_s ] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #00AA00" %></p>
         <% else %>
             <p style="color: #00AA00">0</p>
         <% end %>
@@ -113,7 +125,7 @@
       <div class="col-md-2">
         <h2 class="summary-title"><%= l(:label_due_on_30) %></h2>
         <% if @data[:tr30].any? %>
-            <p><%= link_to @data[:tr30].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1] },"due_date" => {:operator => ">=", :values => [(Date.today + 31).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #929292" %></p>
+            <p><%= link_to @data[:tr30].length, issues_path(filters_for_url({"tracker_id" => {:operator => "=", :values => Tracker.where(:is_in_roadmap => true).map{|t| t.id.to_s} }, "status_id" => {:operator => "=", :values => [1,9] },"due_date" => {:operator => ">=", :values => [(Date.today + 31).to_s] }, "project_and_descendants" => {:operator => "=", :values => Project.roots_visibles.map{|p| p.id}}, "project_type_id" => {:operator => "=", :values => [Setting.default_project_for_strategy.to_i]}})), :style => "color: #929292" %></p>
         <% else %>
             <p style="color: #929292">0</p>
         <% end %>

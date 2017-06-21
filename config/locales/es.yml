@@ -487,7 +487,7 @@ es:
   label_issue_view_all: Ver todas las peticiones
   label_issue_watchers: Seguidores
   label_issues_by: "Peticiones por %{value}"
-  label_jump_to_a_project: Ir al proyecto...
+  label_jump_to_a_project: SCRUM Proyecto…
   label_language_based: Basado en el idioma
   label_last_changes: "últimos %{count} cambios"
   label_last_login: Última conexión
