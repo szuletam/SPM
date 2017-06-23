@@ -12,17 +12,14 @@ $.extend(ysy.view.leftGrid, {
     assigned_to: 100,
     grid_width: 400
   },
-  initGantt: function () {
-
-  },
   patch: function () {
-    ysy.data.limits.columnsWidth = $.extend({},this.columnsWidth);
+    ysy.data.limits.columnsWidth = $.extend({}, this.columnsWidth);
     ysy.view.columnBuilders = ysy.view.columnBuilders || {};
     $.extend(ysy.view.columnBuilders, {
       id: function (obj) {
         if (obj.id > 1000000000000) return '';
         var path = ysy.settings.paths.rootPath + "issues/";
-        return "<a href='" + path + obj.id + "' title='" + obj.text + "'>#" + obj.id + "</a>";
+        return "<a href='" + path + obj.id + "' title='" + obj.text + "' target='_blank'>#" + obj.id + "</a>";
       },
       updated_on: function (obj) {
         if (!obj.columns)return "";
@@ -57,19 +54,13 @@ $.extend(ysy.view.leftGrid, {
             path = ysy.settings.paths.rootPath + "users/"
           }
         }
-        return "<a href='" + path + id + "' title='" + obj.text + "'>" + obj.text + "</a>";
+        return "<a href='" + path + id + "' title='" + obj.text + "' target='_blank'>" + obj.text + "</a>";
       },
       _default: function (col) {
-        var template = '<div class="' + (col.target ? 'multieditable' : '') + '"' + (col.target ? ' data-name="' + col.target + '"' : '') + (col.type ? ' data-type="' + col.type + '"' : '') + (col.source ? ' data-source="' + col.source + '"' : '') + ' {{#value_id}}data-value="{{value_id}}"{{/value_id}} title="{{value}}">{{value}}</div>';
         return function (obj) {
-          if (!obj.columns)return "";
-          var value = obj.columns[col.name];
-          return Mustache.render(template, {
-            issue_id: obj.real_id,
-            value: value,
-            value_id: obj.columns[col.name + "_id"]
-          });
-        }
+          if (!obj.columns) return "";
+          return obj.columns[col.name] || "";
+        };
       }
 
     });
@@ -171,13 +162,18 @@ $.extend(ysy.view.leftGrid, {
       var resizes = [];
 
       for (var i = 0; i < columns.length; i++) {
-        var last = true;
+        var last = i === columns.length - 1;
         var col = columns[i];
         if (last && this._get_grid_width() > width + col.width)
           col.width = this._get_grid_width() - width;
         width += col.width;
         var sort = (this._sort && col.name === this._sort.name) ? ("<div class='gantt_sort gantt_" + this._sort.direction + "'></div>") : "";
-        if (!this._sort && col.tree) sort = "<div class='gantt_sort gantt_none'></div>";
+        if (col.tree) {
+          if (!this._sort) sort = '<div class="gantt_sort gantt_none"></div>';
+          if (ysy.pro.collapsor) {
+            sort += ysy.pro.collapsor.templateHtml;
+          }
+        }
         var cssClass = ["gantt_grid_head_cell",
           ("gantt_grid_head_" + col.name),
           (last ? "gantt_last_cell" : ""),
@@ -195,7 +191,6 @@ $.extend(ysy.view.leftGrid, {
         /*var resize = '<div class="gantt_grid_column_resize_wrap" style="height:100%;left:' + (width - 7) + 'px;z-index:1" column-index="' + i + '">\
          <div class="gantt_grid_column_resize"></div></div>';
          resizes.push(resize);*/
-      break;
       }
       //var resize = '<div class="gantt_grid_column_resize_wrap" style="height:100%;left:' + (this._get_grid_width() - 10) + 'px;z-index:1" >\
       //<div class="gantt_grid_column_resize"></div></div>';
@@ -206,6 +201,9 @@ $.extend(ysy.view.leftGrid, {
       this.$grid_scale.style.position = "relative";
       this.$grid_scale.innerHTML = cells.join("") + resizes.join("");
       ysy.view.leftGrid.resizeTable();
+      if (ysy.view.collapsors) {
+        ysy.view.collapsors.requestRepaint();
+      }
       //resizeColumns();
     };
     gantt._calc_grid_width = function () {

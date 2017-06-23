@@ -21,16 +21,14 @@ $.extend(ysy.view.bars, {
   },
   removeRenderer: function (entity, renderer) {
     var renderers = this._rendererStack[entity];
-    if(renderers != undefined) {
-        for (var i = 0; i < renderers.length; i++) {
-            if (renderers[i] === renderer) {
-                renderers.splice(i, 1);
-                this.reconstructRenderer(entity);
-                return;
-            }
-        }
+    if (!renderers) return;
+    for (var i = 0; i < renderers.length; i++) {
+      if (renderers[i] === renderer) {
+        renderers.splice(i, 1);
+        this.reconstructRenderer(entity);
+        return;
+      }
     }
-
   },
   reconstructRenderer: function (entity) {
     var renderers = this._rendererStack[entity];
@@ -114,7 +112,7 @@ $.extend(ysy.view.bars, {
         this.starts.push(partX);
 
       }
-      this.el.className = "gantt-rm-allocation-line";
+      this.el.className += " gantt-task-bar-line";
       if (this.isAssignee) {
         var y = this.gantt.getTaskTop(task.id);
         this.el.style.left = startX + "px";
@@ -128,6 +126,7 @@ $.extend(ysy.view.bars, {
       el.style.width = width + "px";
       el.width = width;
       el.height = this.height - 1;
+      el.className = "gantt-task-bar-canvas";
       this.canvases.push(el);
       var ctx = el.getContext("2d");
       ctx.textAlign = 'center';
@@ -161,11 +160,11 @@ $.extend(ysy.view.bars, {
       var posPack = this.getPosPack(x, pack);
       var ctx = pack.ctx;
       if (styles.backgroundColor) {
-        this.fillRectAtPosPack(posPack, pack, styles.backgroundColor);
+        this.fillRectAtPosPack(posPack, pack, styles.backgroundColor, styles.shrink);
       }
       ctx.font = styles.fontStyle;
       ctx.fillStyle = styles.textColor;
-      var text = formatter(value,posPack.width);
+      var text = formatter(value, posPack.width);
       text = this.fitTextInWidth(text, posPack.width, ctx);
       ctx.fillText(text, posPack.middle, this.height / 2 + 1);
     },
@@ -175,7 +174,7 @@ $.extend(ysy.view.bars, {
       var posPack = this.getPosPack(x, pack);
       var ctx = pack.ctx;
       if (styles.backgroundColor) {
-        this.fillRectAtPosPack(posPack, pack, styles.backgroundColor);
+        this.fillRectAtPosPack(posPack, pack, styles.backgroundColor, styles.shrink);
       }
       var bottomLine = this.height / 2 + 1;
       ctx.fillStyle = styles.textColor;
@@ -192,9 +191,13 @@ $.extend(ysy.view.bars, {
         ctx.fillText(textBottom, posPack.middle, bottomLine);
       }
     },
-    fillRectAtPosPack: function (posPack, pack, fillColor) {
+    fillRectAtPosPack: function (posPack, pack, fillColor, shrink) {
       pack.ctx.fillStyle = fillColor;
-      pack.ctx.fillRect(posPack.start, 0, posPack.width, this.height);
+      if (shrink) {
+        pack.ctx.fillRect(posPack.start + 1, 1, posPack.width - 3, this.height - 3);
+      } else {
+        pack.ctx.fillRect(posPack.start, 0, posPack.width, this.height);
+      }
     },
     roundTo1: function (number) {
       if (number === undefined) return "";

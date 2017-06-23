@@ -3,6 +3,7 @@
     form_options = {}
   end
 
+  query ||= @query
   form_path ||= easy_gantt_path(@project)
   form_options[:additional_elements_to_serialize] ||= 'null'
 %>
@@ -17,7 +18,7 @@
       <fieldset id="filters" class="collapsible collapsed">
         <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
         <div style="display: none;">
-          <%= render 'queries/filters', query: @query %>
+          <%= render 'queries/filters', query: query %>
         </div>
       </fieldset>
 
@@ -27,7 +28,7 @@
           <table>
             <tr>
               <td><%= l(:field_column_names) %></td>
-              <td><%= render_query_columns_selection(@query) %></td>
+              <td><%= render_query_columns_selection(query) %></td>
             </tr>
           </table>
         </div>

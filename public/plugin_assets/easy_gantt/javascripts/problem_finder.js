@@ -71,9 +71,9 @@ ysy.pro.problemFinder = $.extend(ysy.pro.problemFinder, {
     this.relationProblems = problems;
     this._fireChanges(this, "relations problems recalculated");
   },
-  close: function () {
+  close: function (who) {
     ysy.settings.problemFinder.setSilent({opened: false});
-    ysy.settings.problemFinder._fireChanges(this, "event close");
+    ysy.settings.problemFinder._fireChanges(who, "event close");
   },
   scrollToIssue: function (issueId) {
     var task = gantt._pull[issueId];
@@ -87,7 +87,6 @@ ysy.view.ProblemFinder = function () {
   this.listIsHidden = true;
 };
 ysy.view.extender(ysy.view.Button, ysy.view.ProblemFinder, {
-  name: "ProblemFinderWidget",
   templateName: "ProblemFinder",
   elementPrefix: "button_",
   outerClickBind: false,
@@ -105,8 +104,11 @@ ysy.view.extender(ysy.view.Button, ysy.view.ProblemFinder, {
     this.$target.html(rendered);
     if (this.model.opened) {
       if (!$problemList.length) {
-        $problemList = $('<div id="gantt_problem_list" class="gantt-menu-problems-list"></div>').insertAfter($("#button_problem_finder"))
-            .css({maxHeight: ($(window).height() - 110) + "px"})
+        var $button = $("#button_problem_finder");
+        var offset = $button.position().top;
+        var viewHeight = Math.min($(window).height() - 105 - offset, $("#easy_gantt").height() - 95);
+        $problemList = $('<div id="gantt_problem_list" class="gantt-menu-problems-list"></div>').insertAfter($button)
+            .css({maxHeight: viewHeight + "px"})
       }
       this.bindOuterClick();
       rendered = Mustache.render(ysy.view.getTemplate(this.templateName + "List"), this.out());
@@ -153,10 +155,10 @@ ysy.view.extender(ysy.view.Button, ysy.view.ProblemFinder, {
     var self = this;
     $(document).on("click.problem_finder", function (e) {
       //is inside ProblemList
-      if (e && e.target.closest("#gantt_problem_list")) return;
+      if (e && $(e.target).closest("#gantt_problem_list").length) return;
       $(document).off("click.problem_finder");
       self.outerClickBind = false;
-      ysy.pro.problemFinder.close();
+      ysy.pro.problemFinder.close(self);
     });
     this.outerClickBind = true;
   }

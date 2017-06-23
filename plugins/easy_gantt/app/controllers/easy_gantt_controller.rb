@@ -2,14 +2,15 @@ class EasyGanttController < ApplicationController
   accept_api_auth :index, :issues, :projects, :project_issues, :change_issue_relation_delay, :reschedule_project
   menu_item :easy_gantt
 
-  before_filter :find_project, only: [:reschedule_project]
-  before_filter :find_project_by_project_id, :if => Proc.new { params[:project_id].present?}, except: [:reschedule_project, :project_issues]
+  RELATION_TYPES_TO_LOAD = ['relates', 'blocks', 'blocked', 'precedes', 'follows', 'start_to_start', 'finish_to_finish', 'start_to_finish']
+
+  before_filter :find_optional_project, except: [:reschedule_project, :project_issues]
   before_filter :find_opened_project, except: [:reschedule_project]
 
-  #before_filter :authorize, if: proc { @project.present? }
-  #before_filter :authorize_global, if: proc { @project.nil? }
+  before_filter :authorize, if: proc { @project.present? }
+  before_filter :authorize_global, if: proc { @project.nil? }
 
-  #before_filter :check_rest_api_enabled, only: [:index]
+  before_filter :check_rest_api_enabled, only: [:index]
   before_filter :find_relation, only: [:change_issue_relation_delay]
 
   include_query_helpers
@@ -63,7 +64,16 @@ class EasyGanttController < ApplicationController
   # You cannot use issue.reschedule_on because it will
   # also set start_date which is not desirable !!!
   def reschedule_project
-    @project.gantt_reschedule(params[:days].to_i)
+    begin
+      # Do not used callback `find_project` because it will test access rights
+      # to project context. Method wont work if project does not have gantt enabled.
+      project = Project.find(params[:id])
+    rescue ActiveRecord::RecordNotFound
+      render_404
+      return
+    end
+
+    project.gantt_reschedule(params[:days].to_i)
 
     respond_to do |format|
       format.api { render_api_ok }
@@ -95,18 +105,27 @@ class EasyGanttController < ApplicationController
 
     def query_class
       if EasyGantt.easy_extensions?
-        EasyGanttEasyIssueQuery
+        @project ? EasyGanttEasyIssueQuery : EasyGanttEasyProjectQuery
       else
-        EasyGantt::EasyGanttIssueQuery
+        @project ? EasyGantt::EasyGanttIssueQuery : EasyGanttProjectQuery
       end
     end
 
     def retrieve_query
       if params[:query_id].present?
-        cond  = 'project_id IS NULL'
-        cond << " OR project_id = #{@project.id}" if @project
+        cond = 'project_id IS NULL'
 
-        @query = query_class.where(cond).find_by_id(params[:query_id])
+        if @project
+          cond << " OR project_id = #{@project.id}"
+
+          # In Easy Project query can be defined for subprojects
+          if !@project.root? && EasyGantt.easy_extensions?
+            ancestors = @project.ancestors.select(:id).to_sql
+            cond << " OR (is_for_subprojects = #{Project.connection.quoted_true} AND project_id IN (#{ancestors}))"
+          end
+        end
+
+        @query = query_class.where(cond).find_by(id: params[:query_id])
         raise ActiveRecord::RecordNotFound if @query.nil?
         raise Unauthorized unless @query.visible?
 
@@ -178,8 +197,6 @@ class EasyGanttController < ApplicationController
 
       # From ancestors take only current opened level
       @projects.concat Project.where(tree_conditions).where(parent_id: @opened_project.try(:id)).to_a
-      #ignore templates
-      @projects = @projects.select{|p| !p.is_template?}
 
       Project.load_gantt_dates(@projects)
       if EasySetting.value(:easy_gantt_show_project_progress)
@@ -187,15 +204,13 @@ class EasyGanttController < ApplicationController
       end
     end
 
+    # Only between loaded tasks
     def load_relations
-      # Only between loaded tasks
-      # @relations = IssueRelation.where(issue_from_id: @issue_ids, issue_to_id: @issue_ids)
-
-      # All possible relations
       if @issue_ids.empty?
         @relations = []
       else
-        @relations = IssueRelation.where('issue_from_id IN (?) OR issue_to_id IN (?)', @issue_ids, @issue_ids)
+        @relations = IssueRelation.where('issue_from_id IN (?) OR issue_to_id IN (?)', @issue_ids, @issue_ids).
+                                   where(relation_type: RELATION_TYPES_TO_LOAD)
       end
     end
 
@@ -222,13 +237,8 @@ class EasyGanttController < ApplicationController
       starts = data.map(&starts).compact
       ends = data.map(&ends).compact
 
-      min_start = starts.min ? starts.min.to_date : nil
-      max_start = starts.max ? starts.max.to_date : nil
-      min_end = ends.min ? ends.min.to_date : nil
-      max_end = ends.max ? ends.max.to_date : nil
-
-      @start_date = (min_start || min_end || Date.today) - 1.day
-      @end_date = (max_end || max_start || Date.today) + 1.day
+      @start_date = (starts.min || ends.min || Date.today) - 1.day
+      @end_date = (ends.max || starts.max || Date.today) + 1.day
     end
 
     def find_optional_project

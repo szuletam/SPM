@@ -1,5 +1,6 @@
 class EasyGanttEasyProjectQuery < EasyProjectQuery
 
+
   # KEEP_AVAILABLE_COLUMNS = [
   #   :id, :project, :parent, :status, :tracker, :priority, :fixed_version, :subject, :start_date, :due_date, :created_on, :updated_on, :easy_status_updated_on, :open_duration_in_hours, :easy_last_updated_by, :done_ratio, :easy_due_date_time_remaining, :closed_on, :easy_closed_by, :is_private, :category, :assigned_to, :author, :estimated_hours, :total_estimated_hours, :spent_hours, :total_spent_hours, :remaining_timeentries, :total_remaining_timeentries, :spent_estimated_timeentries, :total_spent_estimated_timeentries
   # ]

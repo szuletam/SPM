@@ -1,0 +1,189 @@
+<%
+  subproject_gantt_params = query.to_params.merge(key: User.current.api_key, subproject_loading: '1', opened_project_id: ':projectID', format: 'json')
+
+  subproject_gantt_path = if @project
+      issues_easy_gantt_path(@project.id, subproject_gantt_params)
+    else
+      projects_easy_gantt_path(subproject_gantt_params)
+    end
+
+  conditional_paths = {}
+
+  if EasyGantt.easy_extensions?
+    conditional_paths[:issueFormFields] = url_for(controller: 'easy_issues', action: 'form_fields', format: 'json', project_id: nil, id: '__issueId')
+    conditional_paths[:projectFormFields] = url_for(controller: 'easy_issues', action: 'form_fields', format: 'json', project_id: '__projectId')
+  end
+
+  if @project && EasyGantt.easy_baseline?
+    conditional_paths[:baselineRoot] = project_easy_baselines_path(@project, key: User.current.api_key, format: 'json')
+    conditional_paths[:baselineGET] = easy_baseline_gantt_path(':baselineID', key: User.current.api_key, format: 'json')
+    conditional_paths[:baselineDELETE] = project_easy_baseline_path(@project, ':baselineID', key: User.current.api_key, format: 'json')
+  end
+%>
+<%= render 'easy_gantt_pro/test_includes' if params[:run_jasmine_tests] || params[:spec] %>
+
+<%= content_for :header_tags do %>
+  <%= stylesheet_link_tag(:easy_gantt_pro, plugin: 'easy_gantt_pro', media: 'all') %>
+  <%= javascript_include_tag(:common, plugin: 'easy_gantt_pro') %>
+  <%= javascript_include_tag(:baseline, plugin: 'easy_gantt_pro') if @project %>
+  <%= javascript_include_tag(:critical, plugin: 'easy_gantt_pro') if @project && EasySetting.value(:easy_gantt_critical_path) != 'disabled' %>
+  <%= javascript_include_tag(:add_task, plugin: 'easy_gantt_pro') if @project %>
+  <%= javascript_include_tag(:project_move, plugin: 'easy_gantt_pro') if @project.nil? %>
+  <%= javascript_include_tag(:lowest_progress, plugin: 'easy_gantt_pro') if @project.nil? && EasySetting.value(:easy_gantt_show_lowest_progress_tasks) %>
+  <%= javascript_include_tag(:schemes, plugin: 'easy_gantt_pro') if EasyGantt.easy_extensions? %>
+  <%= javascript_include_tag(:delayed_projects, plugin: 'easy_gantt_pro') if @project.nil? && EasySetting.value(:easy_gantt_show_project_progress) %>
+  <%= javascript_include_tag(:delayed_issues, plugin: 'easy_gantt_pro') if params[:controller] == 'easy_gantt' %>
+  <%= javascript_include_tag(:gg_resource, plugin: 'easy_gantt_pro') if @project.nil? && Redmine::Plugin.installed?(:easy_gantt_resources) %>
+  <%= javascript_include_tag(:sorting, plugin: 'easy_gantt_pro') %>
+  <%= javascript_include_tag(:email_silencer, plugin: 'easy_gantt_pro') %>
+  <%= javascript_include_tag(:grid_context, plugin: 'easy_gantt_pro') if @project.present? && EasyGantt.easy_extensions?%>
+  <%= javascript_include_tag(:cashflow, plugin: 'easy_gantt_pro') if EasyGantt.easy_money? %>
+  <%= javascript_include_tag(:fixed_delay, plugin: 'easy_gantt_pro') if EasyGantt.load_fixed_delay? %>
+  <% include_calendar_headers_tags %>
+
+  <script type="text/javascript">
+    window.ysy = window.ysy || {};
+    ysy.settings = ysy.settings || {};
+    $.extend(true, ysy.settings, <%= {
+      criticalType: EasySetting.value(:easy_gantt_critical_path),
+      paths: {
+        subprojectGantt: subproject_gantt_path.html_safe,
+        newIssuePath: new_issue_path(key: User.current.api_key),
+        newMilestonePath: new_project_version_path(':projectID', key: User.current.api_key),
+        projectPUT: easy_gantt_reschedule_project_path(':projectID', format: 'json', key: User.current.api_key),
+        lowestProgressTasks: easy_gantt_lowest_progress_tasks_path(key: User.current.api_key),
+        projectOpenedIssues: project_issues_easy_gantt_path(':projectID', key: User.current.api_key),
+        cashflow: easy_gantt_cashflow_data_path(key: User.current.api_key)
+      }.merge(conditional_paths),
+      labels: {
+        buttons: {
+          create: l(:button_create)
+        },
+        critical: {
+          legend: l('easy_gantt_pro.critical.legend_issues')
+        },
+        properties:{
+          tracker: l(:field_tracker),
+          status: l(:field_status),
+          priority: l(:field_priority),
+          assigned_to: l(:field_assigned_to),
+          activity: l(:field_activity),
+          category: l(:field_category),
+          done_ratio: l(:field_done_ratio),
+          fixed_version: l(:field_fixed_version)
+        },
+        baselines: {
+          baseline: l('easy_gantt_pro.baselines.label_baseline'),
+          startDate: l(:field_start_date),
+          dueDate: l(:field_due_date),
+          createButton: l(:button_create),
+          deleteButton: l(:button_delete),
+          confirm_delete: l('easy_gantt_pro.baselines.confirm_delete'),
+          delete_failed: l('easy_gantt_pro.baselines.delete_failed'),
+          error_not_saved: l('easy_gantt_pro.baselines.error_not_saved'),
+          label_same: l('easy_gantt_pro.baselines.label_same')
+        },
+        baselineCreateModal: {
+          request_failed: l('easy_gantt_pro.baselines.create_failed')
+        },
+        addTask: {
+          error_blank: l('activerecord.errors.messages.blank')
+        },
+        projectMove: {
+          error_opening_unsaved: l('easy_gantt_pro.project_move.error_opening_unsaved')
+        },
+        resources: {
+          label_resources: l('easy_gantt_pro.resources.label_resources')
+        },
+        silencer: {
+          label_disable_notifications: l(:label_disable_notifications)
+        }
+      },
+      datepickerOptions: {
+        dateFormat: 'yy-mm-dd',
+        firstDay: 1,
+        showOn: 'button',
+        buttonImageOnly: true,
+        buttonImage: "#{home_path}images/calendar.png",
+        showButtonPanel: true,
+        showWeek: true,
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        changeMonth: true,
+        changeYear: true
+      }
+    }.to_json.html_safe %>);
+
+    ysy.view = ysy.view || {};
+    ysy.view.templates = ysy.view.templates || {};
+    $.extend(true, ysy.view.templates, <%= {
+      BaselineOption: %{
+       {{#baselines}}<option id="baseline_option_{{id}}" value="{{id}}"{{selected}}>{{name}}</option>{{/baselines}}
+      },
+      errorExplanation: %{
+        <div id="errorExplanation">
+          <ul>
+          {{#problems}}
+          <li>{{.}}</li>
+          {{/problems}}
+          </ul>
+        </div>
+      },
+      baselineCreateModal: %{
+        <h3 class="title">#{l('easy_gantt.popup.baseline.heading_new_baseline')}</h3>
+        <form class="tabular">
+        <p>
+          <label for="baseline_modal_name">#{l(:field_name)}</label>
+          <input type="text" placeholder="{{generic}}" id="baseline_modal_name" size="50">
+        </p>
+        </form>
+      },
+      lowestProgressText: %{
+        <div title="{{#issues}}\#{{id}} {{name}}\n{{/issues}}(#{l('easy_gantt_pro.lowest_progress.label_progress_date')}: {{progress_date}})">
+          {{#issues}}
+          <a href="{{url}}" target="_blank">{{name}}</a>
+          {{/issues}}
+          #$@& (#{l('easy_gantt_pro.lowest_progress.label_progress_date')}: {{progress_date}})
+        </div>
+      },
+      CashflowTooltip: %{
+        <h3 class="gantt-tooltip-header">Cashflow</h3>
+        {{#dates}}
+        <div class="gantt-tooltip-cashflow-day{{#first}} gantt-tooltip-cashflow-day-first{{/first}}">
+          <div class="gantt-tooltip-cashflow-left">{{date}}</div>
+          <div class="gantt-tooltip-cashflow-right">
+            {{#revenues}}
+            <div>Amount: <span class="gantt-tooltip-cashflow-price">{{price1}}</span></div>
+            {{/revenues}}
+            {{#expenses}}
+            <div>Amount: <span class="gantt-tooltip-cashflow-price negative">- {{price1}}</span></div>
+            {{/expenses}}
+          </div>
+        </div>
+        {{/dates}}
+      },
+      gridContext: %{
+        <ul>
+        {{#menu}}
+          {{^hasMenu}}
+          <li>
+            <a class="{{icon}} {{className}}" href="{{href}}">{{name}}</a>
+          {{/hasMenu}}
+          {{#hasMenu}}
+          <li class="folder">
+            <a href="javascript:void(0)" class="submenu {{icon}}">{{name}}</a>
+            <ul data-property="{{property}}">
+              {{#folder}}
+                <li>
+                  <a class="gantt-context-leaf{{#isChecked}} icon-checked{{/isChecked}}{{#isDisabled}} disabled{{/isDisabled}}" href="javascript:void(0)" data-value="{{value}}">{{name}}</a>
+                </li>
+              {{/folder}}
+            </ul>
+          {{/hasMenu}}
+          </li>
+        {{/menu}}
+        </ul>
+      }
+    }.to_json.html_safe %>)
+  </script>
+<% end %>

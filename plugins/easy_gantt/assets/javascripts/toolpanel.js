@@ -2,114 +2,8 @@ window.ysy = window.ysy || {};
 ysy.pro = ysy.pro || {};
 ysy.pro.toolPanel = ysy.pro.toolPanel || {};
 $.extend(ysy.pro.toolPanel, {
-  extendees: [
-    {
-      id: "close_all_parent_issues",
-      bind: function () {
-        this.model = ysy.data.limits;
-        this._register(ysy.settings.resource, 1);
-      },
-      func: function () {
-        var openings = this.model.openings;
-        var issues = ysy.data.issues.getArray();
-        this.model.parentsIssuesClosed = !this.model.parentsIssuesClosed;
-        if (this.model.parentsIssuesClosed) {
-          for (var i = 0; i < issues.length; i++) {
-            openings[issues[i].getID()] = false;
-          }
-        } else {
-          for (i = 0; i < issues.length; i++) {
-            delete openings[issues[i].getID()];
-          }
-        }
-        this.model._fireChanges(this, "close_all_parent_issues");
-        return false;
-      },
-      isOn: function () {
-        return this.model.parentsIssuesClosed;
-      }
-    },
-    {
-      id: "close_all_milestones",
-      bind: function () {
-        this.model = ysy.data.limits;
-        this._register(ysy.settings.resource, 1);
-      },
-      func: function () {
-        var openings = this.model.openings;
-        var milestones = ysy.data.milestones.getArray();
-        this.model.milestonesClosed = !this.model.milestonesClosed;
-        if (this.model.milestonesClosed) {
-          for (var i = 0; i < milestones.length; i++) {
-            openings[milestones[i].getID()] = false;
-          }
-        } else {
-          for (i = 0; i < milestones.length; i++) {
-            delete openings[milestones[i].getID()];
-          }
-        }
-        this.model._fireChanges(this, "close_all_milestones");
-        return false;
-      },
-      isOn: function () {
-        return this.model.milestonesClosed;
-      }
-    },
-    {
-      id: "close_all_projects",
-      bind: function () {
-        this.model = ysy.data.limits;
-        this._register(ysy.settings.resource, 1);
-      },
-      func: function () {
-        var openings = this.model.openings;
-        var projects = ysy.data.projects.getArray();
-        this.model.projectsClosed = !this.model.projectsClosed;
-        if (this.model.projectsClosed) {
-          for (var i = 0; i < projects.length; i++) {
-            if (projects[i].id === ysy.settings.projectID) continue;
-            delete openings[projects[i].getID()];
-            // gantt.close(projects[i].getID());
-          }
-        } else {
-          for (i = 0; i < projects.length; i++) {
-            if (!projects[i].needLoad) {
-              openings[projects[i].getID()] = true;
-            }
-            //gantt.open(projects[i].getID());
-          }
-        }
-        this.model._fireChanges(this, "close_all_projects");
-        return false;
-      },
-      isOn: function () {
-        return this.model.projectsClosed;
-      }
-    },
-    {
-      id: "close_all_something",
-      bind: function () {
-        this.model = ysy.data.limits;
-        this._register(ysy.settings.resource, 1);
-      },
-      func: function () {
-        if (!this.isOn()) {
-          this.model.projectsClosed = false;
-          this.model.milestonesClosed = false;
-          this.model.parentsIssuesClosed = false;
-        }
-        $("#button_close_all_parent_issues").click();
-        $("#button_close_all_milestones").click();
-        $("#button_close_all_projects").click();
-      },
-      isOn: function () {
-        return this.model.parentsIssuesClosed && this.model.milestonesClosed && this.model.projectsClosed;
-      },
-      isHidden: function () {
-        return ysy.settings.resource.open;
-      }
-    }
-  ],
+  _name:"ToolPanel",
+  extendees: [],
   initToolbar: function (ctx) {
     var toolPanel = new ysy.view.ToolPanel();
     toolPanel.init(ysy.settings.toolPanel);
@@ -176,7 +70,7 @@ $.extend(ysy.pro.toolPanel, {
   close: function (except) {
     if (except && except.doNotCloseToolPanel) return;
     ysy.settings.toolPanel.setSilent({open: false});
-    ysy.settings.toolPanel._fireChanges(this, "close");
+    ysy.settings.toolPanel._fireChanges(except, "close");
   }
 });
 

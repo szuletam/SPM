@@ -33,8 +33,10 @@ ysy.log = {
     // "link_config",
     // "link_drag",
     // "empty_field",
+    // "task_drag_milestone",
     // "widget_destroy",
     // "resource",
+    // "summer",
     "nothing"
   ],
   log: function (text) {

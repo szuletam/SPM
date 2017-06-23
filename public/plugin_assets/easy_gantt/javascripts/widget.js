@@ -82,8 +82,8 @@ ysy.view.Widget.prototype = {
       return;
     }
     if (this.repaintRequested || force) {
-      this.repaintRequested = !!this._repaintCore();
       ysy.log.log("--- RepaintCore in " + this.name);
+      this.repaintRequested = !!this._repaintCore();
     } else {
       this.onNoRepaint();
       for (var i = 0; i < this.children.length; i++) {
@@ -189,66 +189,6 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Main, {
 //##############################################################################
 
 //##############################################################################
-ysy.view.TaskTooltip = function () {
-  ysy.view.Widget.call(this);
-};
-ysy.view.extender(ysy.view.Widget, ysy.view.TaskTooltip, {
-  name: "TaskTooltipWidget",
-  templateName: "TaskTooltip",
-  init: function (issue, task) {
-    if (this.model) {
-      this.model.unregister(this);
-    }
-    this.model = issue;
-    this.task = task;
-    this._register(issue);
-    return this;
-  },
-  requestRepaint: function () {
-    ysy.log.debug("TaskTooltip requestRepaint", "tooltip");
-    //this.$target.hide();
-  },
-  out: function () {
-    var model = this.model;
-    var problemList = model.getProblems();
-    var columns = [];
-    if (model.milestone) {
-      if (model.isShared) {
-        columns = [{
-          name: "shared-from",
-          label: "Shared from project",
-          value: '#' + model.real_project_id
-        }]
-      }
-      return {
-        name: model.name,
-        start_date: model.start_date.format(gantt.config.date_format),
-        columns: columns
-      };
-    }
-    var columnHeads = gantt.config.columns;
-    var banned = ["subject", "start_date", "end_date", "due_date"];
-    for (var i = 0; i < columnHeads.length; i++) {
-      var columnHead = columnHeads[i];
-      if (banned.indexOf(columnHead.name) < 0) {
-        var html = $(columnHead.template(this.task)).html();
-        if (!html) continue;
-        columns.push({name: columnHead.name, label: columnHead.label, value: html});
-      }
-    }
-    return {
-      name: model.name,
-      start_date: model.start_date ? model.start_date.format(gantt.config.date_format) : moment(null),
-      end_date: model.end_date ? model.end_date.format(gantt.config.date_format) : moment(null),
-      columns: columns,
-      problems: problemList
-    };
-  },
-  tideFunctionality: function () {
-    //this.$target.offset({left:pos.left,top:pos.top+gantt.config.row_height});
-  }
-});
-//##############################################################################
 ysy.view.LinkPopup = function () {
   ysy.view.Widget.call(this);
 };
@@ -278,7 +218,8 @@ ysy.view.extender(ysy.view.Widget, ysy.view.LinkPopup, {
       delay: this.dhtml.delay,
       label_delay: delayLabels.label,
       button_delete: buttonLabels.button_delete,
-      button_submit: buttonLabels.button_submit
+      button_submit: buttonLabels.button_submit,
+      minimal:ysy.settings.workDayDelays?-1:""
     };
   },
   tideFunctionality: function () {
@@ -302,7 +243,8 @@ ysy.view.extender(ysy.view.Widget, ysy.view.LinkPopup, {
     $target.find("#link_close").on("click", function () {
       var delay = parseInt($target.find("#link_delay_input").val());
       close();
-      if (isNaN(delay) || delay < -1 || delay === dhtml.delay) return;
+      if (isNaN(delay) || delay === dhtml.delay) return;
+      if(ysy.settings.workDayDelays && delay < -1) return;
       dhtml.delay = delay || 0;
       dhtml.widget.update(dhtml);
     });
@@ -310,6 +252,11 @@ ysy.view.extender(ysy.view.Widget, ysy.view.LinkPopup, {
       var delay = model.getActDelay();
       close();
       dhtml.delay = delay || 0;
+      dhtml.widget.update(dhtml);
+    });
+    $target.find("#link_remove_delay").on("click", function () {
+      close();
+      dhtml.delay = 0;
       dhtml.widget.update(dhtml);
     });
   }

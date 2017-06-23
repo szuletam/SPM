@@ -1,11 +1,12 @@
 window.ysy = window.ysy || {};
 ysy.view = ysy.view || {};
 ysy.view.initGantt = function () {
-  ysy.view.leftGrid.initGantt();
   var toMomentFormat = function (rubyFormat) {
     switch (rubyFormat) {
       case '%Y-%m-%d':
         return 'YYYY-MM-DD';
+      case '%Y/%m/%d':
+        return 'YYYY/MM/DD';
       case '%d/%m/%Y':
         return 'DD/MM/YYYY';
       case '%d.%m.%Y':
@@ -84,17 +85,6 @@ ysy.view.initGantt = function () {
     start_date: moment()
   };
 };
-/*ysy.view.applyEasyPatch=function(){
- $.extend(true,$.fn.editable.defaults, {
- ajaxOptions: {
- complete: function(jqXHR) {
- window.easy_lock_verrsion = jqXHR.getResponseHeader('X-Easy-Lock-Version');
- window.easy_last_journal_id = jqXHR.getResponseHeader('X-Easy-Last-Journal-Id');
- ysy.log.debug("after inline editation","inline");
- //ysy.data.loader.loadOne(this.url);
- ysy.data.loader.load();
- }}});
- };*/
 ysy.view.applyGanttPatch = function () {
   ysy.view.leftGrid.patch();
   gantt.locale.date = ysy.settings.labels.date;
@@ -169,7 +159,7 @@ ysy.view.applyGanttPatch = function () {
           if (!link.widget.model.checkDelay()) {
             css += " wrong";
           }
-          if(link.widget.model.isSimple){
+          if (link.widget.model.isSimple) {
             css += " gantt-relation-simple";
           }
         }
@@ -208,12 +198,13 @@ ysy.view.applyGanttPatch = function () {
   gantt.attachEvent("onRowDragStart", function (id, elem) {
     //$(".gantt_grid_data").addClass("dragging");
     var task = gantt.getTask(id);
-    var allowed = gantt.allowedParent(task);
-    if (!allowed) return true;
-    allowed = $.map(allowed, function (el) {
-      return "." + el + "-type";
+    $(".gantt_row").each(function () {
+      var target = gantt._pull[$(this).attr("task_id")];
+      if (!target) return;
+      if (gantt.allowedParent(task, target)) {
+        $(this).addClass("gantt_drag_to_allowed");
+      }
     });
-    $(allowed.join(", ")).not(".gantt-fresh").addClass("gantt_drag_to_allowed");
     return true;
   });
   gantt.attachEvent("onRowDragEnd", function (id, elem) {
@@ -251,6 +242,11 @@ ysy.view.applyGanttPatch = function () {
     ysy.log.debug("LinkClick on " + id, "link_config");
     var link = gantt.getLink(id);
     if (gantt._is_readonly(link)) return;
+    var source = gantt._pull[link.source];
+    if (!source) return;
+    var target = gantt._pull[link.target];
+    if (!target) return;
+    if (source.readonly && target.readonly) return;
 
     var linkConfigWidget = new ysy.view.LinkPopup().init(link.widget.model, link);
     linkConfigWidget.$target = $("#ajax-modal");//$dialog;
@@ -289,66 +285,21 @@ ysy.view.applyGanttPatch = function () {
     var rel = new ysy.data.Relation();
     rel.init(data, relations);
     //rel.delay=rel.getActDelay();  // created link have maximal delay
+    if (!gantt.checkLoopedLink(rel.getTarget(), rel.source_id)) {
+      dhtmlx.message(ysy.view.getLabel("errors2", "loop_link"), "error");
+      return false;
+    }
+
     ysy.history.openBrack();
     relations.push(rel);
-    var res = rel.pushTarget();
+    var allRequests = {};
+    rel.sendMoveRequest(allRequests);
+    gantt.applyMoveRequests(allRequests);
     ysy.history.closeBrack();
-    if (!res) {
-      ysy.history.revert();
-      dhtmlx.message(ysy.view.getLabel("errors2", "loop_link"), "error");
-    }
     return false;
   });
 
-  var taskTooltipInit = function () {
-    var timeout = null;
-    var $tooltip = null;
-    gantt.taskTooltip = function (event) {
-      var task = gantt._pull[gantt.locate(event)];
-      if (!task) return;
-      $tooltip.show();
-      var taskPos = $(event.target).offset();
-      var model = task.widget.model;
-      toolTipWidget.init(model, task);
-      toolTipWidget.repaint(true);
-      $tooltip.offset({left: event.pageX, top: taskPos.top + gantt.config.row_height});
-    };
-    var toolTipWidget = new ysy.view.TaskTooltip();
-    $tooltip = $("<div>").attr("id", "gantt_task_tooltip").addClass("gantt-task-tooltip");
-    var $content = $("#content");
-    $content.append($tooltip);
-    toolTipWidget.$target = $tooltip;
-    $content
-        .on("mouseenter", ".gantt_task_content, .gantt-task-tooltip-area", function (e) {
-          ysy.log.debug("mouseenter", "tooltip");
-          if (timeout) {
-            clearTimeout(timeout);
-          }
-          //ysy.log.debug("e.which = "+e.which+" e.button = "+ e.button+" e.buttons = "+ e.buttons);
-          if (e.buttons !== 0) return;
-          timeout = setTimeout(gantt.taskTooltip(e), 500);
-        })
-        .on("mouseleave mousedown", ".gantt_task_content, .gantt-task-tooltip-area", function (e) {
-          ysy.log.debug("mouseout", "tooltip");
-          if (timeout) {
-            clearTimeout(timeout);
-          }
-          if ($tooltip) {
-            $tooltip.hide();
-          }
-        })
-        .on("mouseup", function (e) {
-          ysy.log.debug("mouseup", "tooltip");
-          if (timeout) {
-            clearTimeout(timeout);
-          }
-          if ($tooltip) {
-            $tooltip.hide();
-          }
-        });
-
-  };
-  taskTooltipInit();
+  ysy.view.taskTooltip.taskTooltipInit();
 
   dhtmlx.message = function (msg, type, delay) {
     if (!type) {
@@ -428,9 +379,24 @@ ysy.view.applyGanttPatch = function () {
   gantt.attachEvent("onLinkValidation", function (link) {
     if (link.source.length > 12) return false;
     if (link.target.length > 12) return false;
-    if (gantt.getTask(link.source).readonly) return false;
-    return !gantt.getTask(link.target).readonly;
-
+    var source = gantt.getTask(link.source);
+    var target = gantt.getTask(link.target);
+    if (source.readonly && target.readonly) return false;
+    if (ysy.settings.parentIssueDates) {
+      var parentId = source.id;
+      while (parentId !== 0) {
+        var parent = gantt.getTask(parentId);
+        if (parent === target) return false;
+        parentId = parent.parent;
+      }
+      parentId = target.id;
+      while (parentId !== 0) {
+        parent = gantt.getTask(parentId);
+        if (parent === source) return false;
+        parentId = parent.parent;
+      }
+    }
+    return true;
   });
   gantt.attachEvent("onAfterTaskMove", function (sid, parent, tindex) {
     this.open(parent);
@@ -487,7 +453,7 @@ ysy.view.applyGanttPatch = function () {
     }
     if (tdate > scale.trace_x[index + 1]) {
       index++;
-      if(scale.count === index + 1){
+      if (scale.count === index + 1) {
         return scale.left[index]
             + scale.width[index]
             * (tdate - scale.trace_x[index])
@@ -525,9 +491,9 @@ ysy.view.applyGanttPatch = function () {
           * (x - scale.left[index])
           / scale.width[index]);
     }
-    if (x > scale.left[index + 1]){
+    if (x > scale.left[index + 1]) {
       index++;
-      if(index === scale.count - 1){
+      if (index === scale.count - 1) {
         return gantt.date.Date(
             scale.trace_x[index].valueOf()
             + (gantt._max_date - scale.trace_x[index])
@@ -541,8 +507,8 @@ ysy.view.applyGanttPatch = function () {
         * (x - scale.left[index])
         / scale.width[index]);
   };
-  ysy.view.bars.registerRenderer("task",function(task,next){
-    var $div = $(next().call(this, task,next));
+  ysy.view.bars.registerRenderer("task", function (task, next) {
+    var $div = $(next().call(this, task, next));
     if (this.hasChild(task.id) || $div.hasClass("parent")) {
       $div.addClass("gantt_parent_task-subtype");
       var $ticks = $("<div class='gantt_task_ticks'></div>");
@@ -606,53 +572,53 @@ ysy.view.applyGanttPatch = function () {
     if (!this.$task || !this.$task_data) return null;
     return {x: this.$task.scrollLeft, y: $(window).scrollTop()};
   };
-  gantt._path_builder.get_endpoint = function(link){
+  gantt._path_builder.get_endpoint = function (link) {
     var types = gantt.config.links;
     var from_start = false, to_start = false;
 
-    if(link.type == types.start_to_start){
+    if (link.type == types.start_to_start) {
       from_start = to_start = true;
-    }else if(link.type == types.finish_to_finish){
+    } else if (link.type == types.finish_to_finish) {
       from_start = to_start = false;
-    }else if(link.type == types.finish_to_start){
+    } else if (link.type == types.finish_to_start) {
       from_start = false;
       to_start = true;
-    }else if(link.type == types.start_to_finish){
+    } else if (link.type == types.start_to_finish) {
       from_start = true;
       to_start = false;
-    }else{
+    } else {
       dhtmlx.assert(false, "Invalid link type");
     }
     var source = gantt._pull[link.source];
     var target = gantt._pull[link.target];
     var sourceShift = 0, targetShift = 0;
-    var fromMount = from_start?source.$startMount:source.$endMount;
-    var toMount = to_start?target.$startMount:target.$endMount;
-    if(fromMount.length>1){
-      for(var i=0;i<fromMount.length;i++){
-        if(link.id==fromMount[i]) break;
+    var fromMount = from_start ? source.$startMount : source.$endMount;
+    var toMount = to_start ? target.$startMount : target.$endMount;
+    if (fromMount.length > 1) {
+      for (var i = 0; i < fromMount.length; i++) {
+        if (link.id == fromMount[i]) break;
       }
-      sourceShift=(i*2)/(fromMount.length-1)*6-6;
+      sourceShift = (i * 2) / (fromMount.length - 1) * 6 - 6;
     }
-    if(toMount.length>1){
-      for(i=0;i<toMount.length;i++){
-        if(link.id==toMount[i]) break;
+    if (toMount.length > 1) {
+      for (i = 0; i < toMount.length; i++) {
+        if (link.id == toMount[i]) break;
       }
-      targetShift=(i*2)/(toMount.length-1)*6-6;
+      targetShift = (i * 2) / (toMount.length - 1) * 6 - 6;
     }
     var from = gantt._get_task_visible_pos(gantt._pull[link.source], from_start);
     var to = gantt._get_task_visible_pos(gantt._pull[link.target], to_start);
 
     return {
-      x :  from.x,
-      e_x : to.x,
-      y : from.y+sourceShift,
-      e_y : to.y+targetShift
+      x: from.x,
+      e_x: to.x,
+      y: from.y + sourceShift,
+      e_y: to.y + targetShift
     };
   };
-  gantt._sync_links = function() {
+  gantt._sync_links = function () {
     for (var id in this._pull) {
-      if(!this._pull.hasOwnProperty(id)) continue;
+      if (!this._pull.hasOwnProperty(id)) continue;
       var task = this._pull[id];
       task.$source = [];
       task.$target = [];
@@ -660,32 +626,50 @@ ysy.view.applyGanttPatch = function () {
       task.$endMount = [];
     }
     for (id in this._lpull) {
-      if(!this._lpull.hasOwnProperty(id)) continue;
+      if (!this._lpull.hasOwnProperty(id)) continue;
       var link = this._lpull[id];
       var types = gantt.config.links;
-      if(this._pull[link.source]){
+      if (this._pull[link.source]) {
         this._pull[link.source].$source.push(id);
-        if(link.type == types.start_to_start || link.type == types.start_to_finish){
+        if (link.type == types.start_to_start || link.type == types.start_to_finish) {
           this._pull[link.source].$startMount.push(id);
-        }else{
+        } else {
           this._pull[link.source].$endMount.push(id);
         }
       }
-      if(this._pull[link.target]){
+      if (this._pull[link.target]) {
         this._pull[link.target].$target.push(id);
-        if(link.type == types.start_to_start || link.type == types.finish_to_start){
+        if (link.type == types.start_to_start || link.type == types.finish_to_start) {
           this._pull[link.target].$startMount.push(id);
-        }else{
+        } else {
           this._pull[link.target].$endMount.push(id);
         }
       }
     }
   };
-  gantt._has_children = function(id){
+  gantt._has_children = function (id) {
     var item = gantt._pull[id];
     if (item.widget && item.widget.model && item.widget.model.needLoad) {
       return true;
     }
     return this.getChildren(id).length > 0;
   };
+  gantt.setParent = function (task, new_pid) {
+    if (ysy.settings.parentIssueDates) {
+      var parentTask = this._pull[new_pid];
+      if (parentTask && gantt._get_safe_type(parentTask.type) === "task") {
+        parentTask.$no_start = true;
+        parentTask.$no_end = true;
+      }
+    }
+    task.parent = new_pid;
+  };
+  gantt.attachEvent("onAfterTaskMove", function (taskId) {
+    var task = gantt._pull[taskId];
+    if (!task) return;
+    task._parentChanged = true;
+  });
+  $("#main").on("resize", function () {
+    gantt.render();
+  });
 };

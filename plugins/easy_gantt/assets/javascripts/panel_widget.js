@@ -18,6 +18,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Toolbars, {
     "AddTaskPanelWidget": "#add_task_panel",
     "LegendWidget": "#easy_gantt_footer_legend",
     "ToolPanelWidget": "#easy_gantt_tool_panel",
+    "CollapsorsWidget": "#gantt_cont",
     "AffixWidget": "#easy_gantt_menu"
   },
   _updateChildren: function () {
@@ -39,6 +40,11 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Toolbars, {
     var legend = new ysy.view.Legend();
     legend.init(null);
     this.children.push(legend);
+
+    var collapsors = new ysy.view.Collapsors();
+    collapsors.init(null);
+    ysy.view.collapsors = collapsors;
+    this.children.push(collapsors);
 
     if (window.affix || !ysy.settings.easyRedmine) {
       var affix = new ysy.view.Affix();
@@ -99,11 +105,19 @@ ysy.view.extender(ysy.view.Widget, ysy.view.AllButtons, {
         this._register(this.sample);
       },
       func: function () {
+        if (ysy.settings.sample.active) {
+          ysy.data.loader.load();
+          return;
+        }
         ysy.data.save();
       },
       specialRepaint: function () {
         var button_labels = ysy.view.getLabel("buttons");
-        var label = button_labels.button_save;
+        if (ysy.settings.sample.active) {
+          var label = button_labels.button_reload;
+        } else {
+          label = button_labels.button_save;
+        }
         this.$target.children().html(label);
       },
       //isHidden:function(){return ysy.settings.sample.active;},
@@ -172,7 +186,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.AllButtons, {
     critical_help: {},
     print: {
       func: function () {
-        return ysy.view.print.print();
+        return ysy.pro.print.directPrint();
       }
     },
     jump_today: {
@@ -240,6 +254,8 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Button, {
   elementPrefix: "button_",
   _replace: true,
   init: function () {
+    this.name = (this.elid || this.id) + this.name;
+    this.name = this.name.charAt(0).toUpperCase() + this.name.slice(1);
     if (this.bind) {
       this.bind();
     }
@@ -261,7 +277,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Button, {
     var target = this.$target;
     var hidden = this.isHidden();
     target.toggle(!hidden);
-    if (hidden){
+    if (hidden) {
       if (this.specialRepaint) {
         this.specialRepaint(hidden);
       }
@@ -293,8 +309,6 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Button, {
 //##############################################################################
 ysy.view.Select = function () {
   ysy.view.Button.call(this);
-  this.func = function () {
-  }
 };
 ysy.view.extender(ysy.view.Button, ysy.view.Select, {
   name: "SelectWidget",
@@ -304,7 +318,7 @@ ysy.view.extender(ysy.view.Button, ysy.view.Select, {
     var target = this.$target;
     var hidden = this.isHidden();
     target.toggle(!hidden);
-    if(hidden){
+    if (hidden) {
       if (this.specialRepaint) {
         this.specialRepaint(hidden);
       }
@@ -337,7 +351,7 @@ ysy.view.extender(ysy.view.Button, ysy.view.CheckBox, {
     var target = this.$target;
     var hidden = this.isHidden();
     target.toggle(!hidden);
-    if(hidden){
+    if (hidden) {
       if (this.specialRepaint) {
         this.specialRepaint(hidden);
       }
@@ -382,15 +396,31 @@ ysy.view.extender(ysy.view.Widget, ysy.view.Affix, {
     this.$superPanel = $("#supertop_panel");
     this.$cont = $("#gantt_cont");
     this.$document.on("scroll", $.proxy(this.requestRepaint, this));
+    $(window).on("resize", $.proxy(this.requestRepaint, this));
     if (ysy.settings.easyRedmine) {
       this.offset += $("#top-menu").outerHeight();
     }
+    this.bottomFixed = false;
     //this._updateChildren();
   },
   _repaintCore: function () {
     var top = this.$document.scrollTop() + this.offset - this.$superPanel.offset().top - this.$superPanel.outerHeight();
     top = Math.max(Math.floor(top), 0);
     this.setPosition(top);
+    var box = this.$cont[0].getBoundingClientRect();
+
+    if (box.bottom > window.innerHeight) {
+      if (!this.bottomFixed) {
+        // this.$cont.find(".gantt_hor_scroll").css({position: "fixed", top: (window.innerHeight - 15) + "px"});
+        this.$cont.find(".gantt_hor_scroll").css({position: "fixed", bottom: "0"});
+        this.bottomFixed = true;
+      }
+    } else {
+      if (this.bottomFixed) {
+        this.$cont.find(".gantt_hor_scroll").css({position: "relative", bottom: ""});
+        this.bottomFixed = false;
+      }
+    }
   },
   setPosition: function (top) {
     this.$target.css({transform: "translate(0, " + top + "px)"});

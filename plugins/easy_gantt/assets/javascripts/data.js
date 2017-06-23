@@ -19,7 +19,6 @@ ysy.data.Data = function () {
   this._cache = null;
 };
 ysy.data.Data.prototype = {
-  _name: "Data",
   permissions: null,
   problems: {},
   init: function (obj, parent) {
@@ -27,6 +26,7 @@ ysy.data.Data.prototype = {
     $.extend(this, obj);
     this._parent = parent;
     this._postInit();
+    return this;
   },
   _postInit: function () {
   },
@@ -41,17 +41,17 @@ ysy.data.Data.prototype = {
     }
     var rev = {};
     for (var k in nObj) {
-      if (!nObj.hasOwnProperty(k))continue;
+      if (!nObj.hasOwnProperty(k)) continue;
       var nObjk = nObj[k];
       var thisk = this[k];
       if (nObjk !== thisk) {
-        if (thisk && nObjk && nObjk._isAMomentObject && nObjk.isSame(thisk)) {
+        if (ysy.main.isSameMoment(thisk, nObjk)) {
           ysy.log.debug("date filtered as same", "set");
           continue;
         }
         rev[k] = thisk;
         if (rev[k] === undefined) {
-          rev[k] = false;
+          rev[k] = null;
         }
       } else {
         ysy.log.debug(k + "=" + nObjk + " filtered as same", "set");
@@ -96,7 +96,7 @@ ysy.data.Data.prototype = {
         keyk = key[k];
         thisk = this[k];
         if (keyk === thisk)continue;
-        if (thisk && keyk && keyk._isAMomentObject && keyk.isSame(thisk))continue;
+        if (ysy.main.isSameMoment(thisk, keyk)) continue;
         this[k] = keyk;
         different = true;
       }
@@ -123,6 +123,9 @@ ysy.data.Data.prototype = {
       if (!name) {
         name = who.name;
       }
+      if (!name) {
+        ysy.log.warning(who);
+      }
       ysy.log.log("* " + name + " ordered repaint on " + targetPart + reasonPart);
 
     }
@@ -146,7 +149,7 @@ ysy.data.Data.prototype = {
       //this.onChangeNew[i].func();
       ysy.log.log("-- changes to " + (ctx.name ? ctx.name : ctx._name) + " widget");
       //console.log(ctx);
-      onChangeArray[i].func.call(ctx);
+      onChangeArray[i].func.call(ctx, reason);
     }
   },
   remove: function () {
@@ -178,7 +181,11 @@ ysy.data.Data.prototype = {
     var any = false;
     for (var key in newObj) {
       if (!newObj.hasOwnProperty(key)) continue;
-      if (newObj[key] != this._old[key]) {
+      var newItem = newObj[key];
+      if (newItem != this._old[key]) {
+        if(moment.isMoment(newItem)){
+          if(newItem.format("YYYY-MM-DD")===this._old[key]) continue;
+        }
         diff[key] = newObj[key];
         any = true;
       }
@@ -219,7 +226,6 @@ ysy.data.Array = function () {
 };
 ysy.data.extender(ysy.data.Data, ysy.data.Array, {
   isArray: true,
-  _name: "Array",
   get: function (i) {
     if (i < 0 || i >= this.array.length) return null;
     return this.array[i];
@@ -367,6 +373,8 @@ ysy.data.extender(ysy.data.Data, ysy.data.Issue, {
   _name: "Issue",
   ganttType: "task",
   isIssue: true,
+  closed: false,
+  css: '',
   _postInit: function () {
     if (this.start_date) {
       if (typeof this.start_date === "string") {
@@ -507,7 +515,7 @@ ysy.data.extender(ysy.data.Data, ysy.data.Issue, {
     },
     overDue: function () {
       if (
-          (!this.css || this.css.indexOf("closed") < 0)
+          !this.closed
           && this.end_date
           && this.end_date.isBefore(moment().subtract(1, "day")))
         return ysy.settings.labels.problems.overdue;
@@ -526,143 +534,56 @@ ysy.data.extender(ysy.data.Data, ysy.data.Issue, {
     return durationPack[unit];
   },
 
-  pushFollowers: function (visited) {
-    visited = visited || [];
-    ysy.history.openBrack();
-    ysy.log.debug("pushFollowers(): " + this.name, "task_push");
-    var res = true;
+  correctPosition: function (allRequests) {
+    if (allRequests === undefined) allRequests = {};
+    var request = this.getMoveRequest(allRequests);
+    if (!request.needBroadcast) return;
+    request.needBroadcast = false;
+    request.counter++;
+    if (request.counter > 200) return;
+    ysy.log.debug(this.name + " - correctingPosition", "moveRequest");
+    if (ysy.settings.milestonePush) {
+      var milestone = ysy.data.milestones.getByID(this.fixed_version_id);
+      if (milestone) {
+        var milestoneRequest = milestone.getMoveRequest(allRequests);
+        request.setLimits(null, milestoneRequest.softEnd);
+      }
+    }
     var relations = ysy.data.relations.getArray();
     for (var i = 0; i < relations.length; i++) {
       var relation = relations[i];
-      if (relation.getSource() !== this) continue;
-      res = relation.pushTarget(this, visited);
-      if (!res) break;
-      /*var target=relation.getTarget();
-       var diff=-target.start_date.diff(this.end_date,"days")+Math.max(relation.delay,1);
-       target.pushSelf(diff);*/
-
-    }
-    ysy.history.closeBrack();
-    return res;
-  },
-  pushPredecessors: function (visited) {
-    visited = visited || [];
-    ysy.history.openBrack();
-    ysy.log.debug("pushPredecessors(): " + this.name, "task_push");
-    var res = true;
-    var relations = ysy.data.relations.getArray();
-    for (var i = 0; i < relations.length; i++) {
-      var relation = relations[i];
-      if (relation.getTarget() !== this) continue;
-      res = res && relation.pushIssue(false, this, visited);
-    }
-    ysy.history.closeBrack();
-    return res;
-  },
-  correctItselfByMilestone: function (duration) {
-    if (!ysy.settings.milestonePush) return;
-    var milestone = ysy.data.milestones.getByID(this.fixed_version_id);
-    if (!milestone) return;
-    var diff = milestone.start_date.diff(this._end_date, "days");
-    if (diff < 0) {
-      if (duration === undefined) {
-        duration = this.getDuration();
-      }
-      var end_date = moment(this._end_date).add(diff, "days");
-      end_date._isEndDate = true;
-      gantt._working_time_helper.round_date(end_date, 'past');
-      var start_date = gantt._working_time_helper.add_worktime(end_date, -duration, "day");
-      ysy.log.debug("correctItselfByMilestone(): " + this.name + " diff=" + diff + " start=" + start_date.format("YYYY-MM-DD"), "task_push");
-      this.set({start_date: start_date, end_date: end_date});
-      this.pushPredecessors();
-    }
-  },
-  pushSelf: function (days, visited) {
-    visited = visited || [];
-    for (var i = 0; i < visited.length; i++) {
-      if (visited[i] == this) {
-        ysy.log.warning("pushSelf():      " + this.name + " was already been pushed!!!!!", "task_push");
-        return false;
+      if (relation.getTarget() === this || relation.getSource() === this) {
+        relation.sendMoveRequest(allRequests);
       }
     }
-    visited.push(this);
-    ysy.history.openBrack();
-    var res = true;
-    if (days > 0) {
-      var duration = this.getDuration();
-      //gantt._working_time_helper.round_date(target.start_date.);
-      var start_date = moment(this._start_date);
-      var prevStarDate = start_date.format("DD.MM.YYYY");
-      start_date.add(days, "days");
-      gantt._working_time_helper.round_date(start_date);
-      var end_date = gantt._working_time_helper.add_worktime(start_date, duration, "day");
-      var toStarDate = moment(start_date).format("DD.MM.YYYY");
-      ysy.log.debug("pushSelf():      " + this.name + " (" + duration + " days) PUSHED from " + prevStarDate + " to " + toStarDate + " by " + days + " days", "task_push");
-      //this._fireChanges(this,"pushSelf()");
-      this.set({start_date: start_date, end_date: end_date});
-      if (res && ysy.settings.parentIssueDates)
-        res = this.pushChildren(days, visited);
-      this.correctItselfByMilestone(duration);
-      res = this.pushFollowers(visited);
-    } else {
-      ysy.log.debug("pushSelf():      " + this.name + " NOT pushed", "task_push");
-    }
-    ysy.history.closeBrack();
-    return res;
-  },
-  pushSelfBack: function (days, visited) {
-    visited = visited || [];
-    for (var i = 0; i < visited.length; i++) {
-      if (visited[i] == this) {
-        ysy.log.warning("pushSelfBack(): " + this.name + " was already been pushed!!!!!", "task_push");
-        return false;
+    if (ysy.settings.parentIssueDates) {
+      var issues = ysy.data.issues.getArray();
+      var childRequests = [];
+      for (var j = 0; j < issues.length; j++) {
+        if (issues[j].parent_issue_id !== this.id) continue;
+        var child = issues[j];
+        var childRequest = child.getMoveRequest(allRequests);
+        childRequest.setLimits(request.hardStart, request.hardEnd, true);
+        childRequests.push(childRequest);
+      }
+      for (j = 0; j < childRequests.length; j++) {
+        childRequests[j].entity.correctPosition(allRequests);
+      }
+      var parent = ysy.data.issues.getByID(this.parent_issue_id);
+      if (parent) {
+        var parentRequest = parent.getMoveRequest(allRequests);
+        parentRequest.resetByChildren(allRequests);
       }
     }
-    visited.push(this);
-    ysy.history.openBrack();
-    var res = true;
-    if (days > 0) {
-      var duration = this.getDuration();
-      var end_date = moment(this._end_date);
-      end_date._isEndDate = true;
-      var prevEndDate = end_date.format("DD.MM.YYYY");
-      end_date.subtract(days, "days");
-      gantt._working_time_helper.round_date(end_date, 'past');
-      var toEndDate = moment(end_date).format("DD.MM.YYYY");
-      var start_date = gantt._working_time_helper.add_worktime(end_date, -duration, "day");
-      ysy.log.debug("pushSelfBack():     " + this.name + " (" + duration + " days) PUSHED from " + prevEndDate + " to " + toEndDate + " by " + days + " days", "task_push");
-      this.set({start_date: start_date, end_date: end_date});
-      //this._fireChanges(this,"pushSelf()");
-      res = this.pushPredecessors(visited);
-      if (res && ysy.settings.parentIssueDates)
-        res = this.pushChildrenBack(days, visited);
-    } else {
-      ysy.log.debug("pushSelfBack():     " + this.name + " NOT pushed", "task_push");
-    }
-    ysy.history.closeBrack();
-    return res;
   },
-  pushChildren: function (days, visited) {
-    var res = true;
-    ysy.log.debug("pushChildren():  " + this.name + " PUSHING by " + days, "task_push");
-    var issues = ysy.data.issues.getArray();
-    for (var i = 0; i < issues.length; i++) {
-      if (res && issues[i].parent_issue_id == this.id) {
-        res = issues[i].pushSelf(days, visited);
-      }
+  getMoveRequest: function (allRequests) {
+    var request = allRequests[this.getID()];
+    if (!request) {
+      ysy.log.debug(this.name + " - new moveRequest", "moveRequest");
+      allRequests[this.getID()] = request = new ysy.data.MoveRequest();
+      request.init(this, allRequests);
     }
-    return res;
-  },
-  pushChildrenBack: function (days, visited) {
-    var res = true;
-    ysy.log.debug("pushChildrenBack(): " + this.name + " PUSHING BACK by " + days, "task_push");
-    var issues = ysy.data.issues.getArray();
-    for (var i = 0; i < issues.length; i++) {
-      if (res && issues[i].parent_issue_id == this.id) {
-        res = issues[i].pushSelfBack(days, visited);
-      }
-    }
-    return res;
+    return request;
   },
   isOpened: function () {
     var opened = ysy.data.limits.openings[this.getID()];
@@ -688,7 +609,9 @@ ysy.data.extender(ysy.data.Data, ysy.data.Relation, {
     var sourceDate = this.getSourceDate();
     var targetDate = this.getTargetDate();
     if (!sourceDate || !targetDate) return this.delay;
-    return gantt._working_time_helper.get_work_units_between(sourceDate, targetDate, "day");
+    if (ysy.settings.workDayDelays) {
+      return gantt._working_time_helper.get_work_units_between(sourceDate, targetDate, "day");
+    }
     var correction = 0;
     if (sourceDate._isEndDate) correction -= 1;
     if (targetDate._isEndDate) correction += 1;
@@ -711,6 +634,16 @@ ysy.data.extender(ysy.data.Data, ysy.data.Relation, {
     if (this.type === "start_to_start") return target._start_date;
     if (this.type === "start_to_finish") return target._end_date;
     return null;
+  },
+  getSourceCorrection: function () {
+    if (this.type === "precedes") return 1;
+    if (this.type === "finish_to_finish") return 1;
+    return 0;
+  },
+  getTargetCorrection: function () {
+    if (this.type === "start_to_finish") return -1;
+    if (this.type === "finish_to_finish") return -1;
+    return 0;
   },
   //getOtherDate: function (date, forSource) {
   //  var otherDate = gantt._working_time_helper.add_worktime(date, forSource ? -this.delay : this.delay, "day");
@@ -735,41 +668,54 @@ ysy.data.extender(ysy.data.Data, ysy.data.Relation, {
   getTarget: function () {
     return ysy.data.issues.getByID(this.target_id);
   },
-  pushTarget: function (source, visited) {
-    return this.pushIssue(true, source, visited)
-  },
-  pushIssue: function (pushTarget, issue, visited) {
-    if (pushTarget) {
-      var source = issue;
-      var target = this.getTarget();
-    } else {
-      source = this.getSource();
-      target = issue;
-    }
+  sendMoveRequest: function (allRequests) {
+    var source = this.getSource();
+    var target = this.getTarget();
     if (!source || !target) return true; // HALF LINK
-    var sourceDate = this.getSourceDate(source);
-    var targetDate = this.getTargetDate(target);
-    if (!sourceDate) {
-      //ysy.log.error("Link " + this.id + " source is undefined");
-      return false;
-    }
-    if (!targetDate) {
-      //ysy.log.error("Link " + this.id + " target is undefined");
-      return false;
-    }
-    if (pushTarget) {
-      var earliestDate = gantt._working_time_helper.add_worktime(sourceDate, this.delay, "day", targetDate._isEndDate === true);
-      var diff = earliestDate.diff(targetDate, "days");
+    var sourceRequest = source.getMoveRequest(allRequests);
+    var targetRequest = target.getMoveRequest(allRequests);
+    if (this.getSourceCorrection() === 1) {
+      var sourceDate = sourceRequest.softEnd;
+      sourceDate._isEndDate = true;
     } else {
-      var latestDate = gantt._working_time_helper.add_worktime(targetDate, -this.delay, "day", sourceDate._isEndDate === true);
-      diff = sourceDate.diff(latestDate, "days");
+      sourceDate = sourceRequest.softStart;
     }
-    ysy.log.debug("pushIssue(): Relation " + this.id + " pushing " + (pushTarget ? target.name : source.name) + " diff=" + diff, "task_push");
-    if (pushTarget) {
-      return target.pushSelf(diff, visited);
+    if (ysy.settings.workDayDelays) {
+      var earliestTarget = gantt._working_time_helper.add_worktime(sourceDate, this.delay, "day", this.getTargetCorrection() === -1);
     } else {
-      return source.pushSelfBack(diff, visited);
+      earliestTarget = moment(sourceDate).add(this.delay + this.getTargetCorrection() + this.getSourceCorrection(), "days");
     }
+    gantt._working_time_helper.round_date(earliestTarget);
+    targetRequest.setLimits(earliestTarget, null, true);
+
+    if (this.getTargetCorrection() === 0) {
+      earliestTarget = gantt._working_time_helper.add_worktime(earliestTarget, targetRequest.duration, "day", false);
+    }
+
+    if (targetRequest.hardEnd && earliestTarget.isAfter(targetRequest.hardEnd)) {
+      var targetDate = targetRequest.hardEnd;
+      targetDate._isEndDate = true;
+      if (this.getTargetCorrection() === 0) {
+        targetDate = gantt._working_time_helper.add_worktime(targetDate, -targetRequest.duration, "day", false);
+      }
+      if (ysy.settings.workDayDelays) {
+        var latestDate = gantt._working_time_helper.add_worktime(targetDate, -this.delay, "day", sourceDate._isEndDate === true);
+      } else {
+        latestDate = moment(targetDate).add(-this.delay - this.getTargetCorrection() - this.getSourceCorrection(), "days");
+      }
+      if (this.getSourceCorrection() === 0) {
+        latestDate = gantt._working_time_helper.add_worktime(latestDate, sourceRequest.duration, "day", false);
+      }
+      latestDate._isEndDate = true;
+      gantt._working_time_helper.round_date(latestDate, "past");
+      ysy.log.debug(source.name + " - milestonePush to " + latestDate.format("DD.MM.YYYY"), "moveRequest");
+      source.getMoveRequest(allRequests)
+          .setLimits(null, latestDate);
+      return;
+    }
+    ysy.log.debug(target.name + " - classicPush to (end) " + earliestTarget.format("DD.MM.YYYY"), "moveRequest");
+    target.correctPosition(allRequests);
+
   },
   isEditable: function () {
     var source = this.getSource();
@@ -791,7 +737,7 @@ ysy.data.extender(ysy.data.Relation, ysy.data.SimpleRelation, {
   _name: "SimpleRelation",
   skipPush: true,
   isSimple: true,
-  pushIssue: function () {
+  sendMoveRequest: function (allRequests) {
     return false
   },
   isEditable: function () {
@@ -848,9 +794,36 @@ ysy.data.extender(ysy.data.Data, ysy.data.Milestone, {
     }
     return false;
   },
-  pushFollowers: function (oneTarget) {
+  correctPosition: function (allRequests) {
+    if (allRequests === undefined) allRequests = {};
+    var request = this.getMoveRequest(allRequests);
+    if (!request.needBroadcast) return;
+    request.needBroadcast = false;
+    ysy.log.debug(this.name + " - correctingPosition", "moveRequest");
+    var issues = ysy.data.issues.getArray();
+    for (var j = 0; j < issues.length; j++) {
+      if (issues[j].fixed_version_id !== this.id) continue;
+      var child = issues[j];
+      child.getMoveRequest(allRequests).setLimits(null, request.softEnd);
+    }
   },
-  pushSelf: function (days) {
+  getMoveRequest: function (allRequests) {
+    var request = allRequests[this.getID()];
+    if (!request) {
+      ysy.log.debug(this.name + " - new moveRequest", "moveRequest");
+      allRequests[this.getID()] = request = {
+        allRequests: allRequests,
+        entity: this,
+        setPosition: function (sortStart, softEnd) {
+          this.softStart = sortStart;
+          this.softEnd = moment(sortStart);
+          this.softEnd._isEndDate = true;
+        }
+      };
+      request.setPosition(this.start_date, null);
+      // request.init(this, allRequests);
+    }
+    return request;
   },
   isOpened: function () {
     var opened = ysy.data.limits.openings[this.getID()];
@@ -927,8 +900,6 @@ ysy.data.extender(ysy.data.Data, ysy.data.Project, {
   getProgress: function () {
     return this.done_ratio / 100.0 || 0;
   },
-  pushFollowers: function () {
-  },
   getParent: function () {
     if (ysy.data.projects.getByID(this.parent_id)) {
       return "p" + this.parent_id;
@@ -940,3 +911,132 @@ ysy.data.extender(ysy.data.Data, ysy.data.Project, {
   }
 });
 //##############################################################################
+ysy.data.MoveRequest = function () {
+  this.needBroadcast = false;
+  this.counter = 0;
+};
+ysy.data.extender(Object, ysy.data.MoveRequest, {
+  _name: "MoveRequest",
+  init: function (issue, allRequests) {
+    this.entity = issue;
+    this.allRequests = allRequests;
+    this.softStart = issue._start_date;
+    this.softEnd = issue._end_date;
+    this.duration = issue.getDuration();
+    if (!this.entity.isEditable()) {
+      this.hardStart = issue._start_date;
+      this.hardEnd = issue._end_date;
+    }
+    return this;
+  },
+  setLimits: function (hardStart, hardEnd, silent) {
+    var startSet = false, endSet = false, oldHardStart = this.hardStart;
+    if (hardStart) {
+      if (!this.hardStart || this.hardStart.isBefore(hardStart)) {
+        this.hardStart = moment(hardStart);
+        startSet = true;
+      }
+    }
+    if (hardEnd) {
+      if (!this.hardEnd || this.hardEnd.isAfter(hardEnd)) {
+        this.hardEnd = moment(hardEnd);
+        this.hardEnd._isEndDate = true;
+        endSet = true;
+      }
+    }
+    if (startSet || endSet) {
+      if (this.hardEnd) {
+        var lastStart = gantt._working_time_helper.add_worktime(this.hardEnd, -this.duration, "day");
+        if (this.hardStart && this.hardStart.isAfter(lastStart)) {
+          this.hardStart = lastStart;
+        }
+        if (this.softEnd && this.softEnd.isAfter(this.hardEnd)) {
+          ysy.log.debug("start: " + this.softStart.format("DD.MM.YYYY") + "=>" + lastStart.format("DD.MM.YYYY") +
+              " end: " + this.softEnd.format("DD.MM.YYYY") + "=>" + this.hardEnd.format("DD.MM.YYYY"), "moveRequest");
+          this.softEnd = moment(this.hardEnd);
+          this.softEnd._isEndDate = true;
+          this.softStart = lastStart;
+          this.needBroadcast = true;
+        }
+      }
+      if (this.hardStart) {
+        var earliestEnd = gantt._working_time_helper.add_worktime(this.hardStart, this.duration, "day", true);
+        if (this.softStart && this.softStart.isBefore(this.hardStart)) {
+          ysy.log.debug("start: " + this.softStart.format("DD.MM.YYYY") + "=>" + this.hardStart.format("DD.MM.YYYY") +
+              " end: " + this.softEnd.format("DD.MM.YYYY") + "=>" + earliestEnd.format("DD.MM.YYYY"), "moveRequest");
+          this.softStart = moment(this.hardStart);
+          this.softEnd = earliestEnd;
+          this.needBroadcast = true;
+        }
+      }
+    }
+    // if (this.needBroadcast) {
+    //   ysy.log.debug(this.entity.name + " - setLimits(" + (hardStart ? hardStart.format("DD.MM.YYYY") : "null") + "," + (hardEnd ? hardEnd.format("DD.MM.YYYY") : "null") + ") => " + this.needBroadcast,"moveRequest");
+    // }
+    if (!silent) {
+      this.entity.correctPosition(this.allRequests);
+    }
+  },
+  resetByChildren: function (allRequests) {
+    var issues = ysy.data.issues.getArray();
+    var lastStart;
+    var earliestEnd;
+    var startLimit = undefined;
+    var endLimit = undefined;
+    for (var j = 0; j < issues.length; j++) {
+      if (issues[j].parent_issue_id !== this.entity.id) continue;
+      var childRequest = issues[j].getMoveRequest(allRequests);
+      if (!lastStart || lastStart.isAfter(childRequest.softStart)) {
+        lastStart = childRequest.softStart;
+      }
+      if (startLimit !== false) {
+        if (childRequest.hardStart) {
+          if (!startLimit || startLimit.isAfter(childRequest.hardStart)) {
+            startLimit = childRequest.hardStart;
+          }
+        } else {
+          startLimit = false;
+        }
+      }
+      if (!earliestEnd || earliestEnd.isBefore(childRequest.softEnd)) {
+        earliestEnd = childRequest.softEnd;
+      }
+      if (endLimit !== false) {
+        if (childRequest.hardEnd) {
+          if (!endLimit || endLimit.isBefore(childRequest.hardEnd)) {
+            endLimit = childRequest.hardEnd;
+          }
+        } else {
+          endLimit = false;
+        }
+      }
+    }
+    this.needBroadcast = true;
+    this.softStart = moment(lastStart);
+    this.softEnd = moment(earliestEnd);
+    this.softEnd._isEndDate = true;
+    this.hardStart = startLimit || undefined;
+    this.hardEnd = endLimit || undefined;
+    ysy.log.debug(this.entity.name + " - resetByChildren (" + this.softStart.format("DD.MM.YYYY") + "," + this.softEnd.format("DD.MM.YYYY") + ")", "moveRequest");
+    this.duration = gantt._working_time_helper.get_work_units_between(this.softStart, this.softEnd, "day");
+    this.entity.correctPosition(this.allRequests);
+  },
+  setPosition: function (startDate, endDate, silent) {
+    if (!this.entity.isEditable()) return;
+    this.duration = gantt._working_time_helper.get_work_units_between(startDate, endDate, "day");
+    if (!this.hardStart || !this.hardStart.isAfter(startDate)) {
+      this.softStart = startDate;
+      this.needBroadcast = true;
+    } else {
+      endDate = gantt._working_time_helper.add_worktime(this.hardStart, this.duration, "day", true);
+    }
+    if (!this.hardEnd || !this.hardEnd.isBefore(endDate)) {
+      this.softEnd = endDate;
+      this.needBroadcast = true;
+    }
+    ysy.log.debug(this.entity.name + " - setPosition to (" + this.softStart.format("DD.MM.YYYY") + "," + this.softEnd.format("DD.MM.YYYY") + ") => " + this.needBroadcast, "moveRequest");
+    if (!silent) {
+      this.entity.correctPosition(this.allRequests);
+    }
+  }
+});

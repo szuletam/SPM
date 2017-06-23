@@ -1,7 +1,11 @@
 class EasyGanttEasyIssueQuery < EasyIssueQuery
 
   KEEP_AVAILABLE_COLUMNS = [
-    :id, :project, :parent, :status, :tracker, :priority, :fixed_version, :subject, :start_date, :due_date, :created_on, :updated_on, :easy_status_updated_on, :open_duration_in_hours, :easy_last_updated_by, :done_ratio, :easy_due_date_time_remaining, :closed_on, :easy_closed_by, :is_private, :category, :assigned_to, :author, :estimated_hours, :total_estimated_hours, :spent_hours, :total_spent_hours, :remaining_timeentries, :total_remaining_timeentries, :spent_estimated_timeentries, :total_spent_estimated_timeentries
+    # Issues
+    :id, :project, :parent, :status, :tracker, :priority, :fixed_version, :subject, :start_date, :due_date, :created_on, :updated_on, :easy_status_updated_on, :open_duration_in_hours, :easy_last_updated_by, :done_ratio, :easy_due_date_time_remaining, :closed_on, :easy_closed_by, :is_private, :category, :assigned_to, :author, :estimated_hours, :total_estimated_hours, :spent_hours, :total_spent_hours, :remaining_timeentries, :total_remaining_timeentries, :spent_estimated_timeentries, :total_spent_estimated_timeentries,
+
+    # Projects
+   :"projects.name", :"projects.parent", :"projects.root", :"projects.status", :"projects.start_date", :"projects.due_date", :"projects.created_on", :"projects.updated_on", :"projects.easy_indicator", :"projects.identifier", :"projects.completed_percent", :"projects.priority", :"projects.sum_estimated_hours", :"projects.total_sum_estimated_hours", :"projects.sum_of_timeentries", :"projects.remaining_timeentries", :"projects.total_remaining_timeentries", :"projects.total_spent_hours", :"projects.author"
   ]
 
   attr_accessor :opened_project
@@ -11,11 +15,11 @@ class EasyGanttEasyIssueQuery < EasyIssueQuery
 
     self.display_filter_group_by_on_index = false
     self.display_filter_sort_on_index = false
-    # self.display_filter_settings_on_index = false
+    self.display_filter_settings_on_index = false
 
     self.display_filter_group_by_on_edit = false
     self.display_filter_sort_on_edit = false
-    # self.display_filter_settings_on_edit = false
+    self.display_filter_settings_on_edit = false
 
     self.display_show_sum_row = false
     self.display_load_groups_opened = false
@@ -32,6 +36,10 @@ class EasyGanttEasyIssueQuery < EasyIssueQuery
     []
   end
 
+  def available_outputs
+    ['list']
+  end
+
   def default_list_columns
     super.presence || ['subject', 'assigned_to']
   end
@@ -46,7 +54,9 @@ class EasyGanttEasyIssueQuery < EasyIssueQuery
 
   def entity_easy_query_path(**options)
     project = options[:project] || project
-    easy_gantt_path(project, options)
+    if project
+      easy_gantt_path(project, options)
+    end
   end
 
   # Delete these filters because of project_scope
@@ -55,10 +65,14 @@ class EasyGanttEasyIssueQuery < EasyIssueQuery
     @available_filters.delete('subproject_id')
   end
 
-  def available_columns
+  def initialize_available_columns
     super
+    add_associated_columns EasyProjectQuery
+
     @available_columns.keep_if { |column|
-      KEEP_AVAILABLE_COLUMNS.include?(column.name) || column.name.to_s.start_with?('cf_')
+      KEEP_AVAILABLE_COLUMNS.include?(column.name) ||
+      column.name.to_s.start_with?('cf_') ||
+      column.name.to_s.start_with?('projects.cf_')
     }
   end
 
@@ -82,24 +96,6 @@ class EasyGanttEasyIssueQuery < EasyIssueQuery
 
     scope
   end
-
-  # def project_scope
-  #   scope = Project.all
-
-  #   if project
-  #     scope = scope.where(id: project.id)
-  #   elsif opened_project
-  #     scope = scope.where(id: opened_project.id)
-  #   else
-  #     scope = scope.non_templates.active_and_planned
-  #     if has_filter?('is_planned')
-  #       op = value_for('is_planned') == '1' ? '=' : '<>'
-  #       scope = scope.where("#{Project.table_name}.status #{op} ?", Project::STATUS_PLANNED)
-  #     end
-  #   end
-
-  #   scope
-  # end
 
   def without_opened_project
     _opened_project = opened_project

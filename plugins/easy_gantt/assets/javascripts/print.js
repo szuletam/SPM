@@ -1,66 +1,118 @@
 window.ysy = window.ysy || {};
-ysy.view = ysy.view || {};
-ysy.view.print = {
-  logoName: null,
-  logo: null,
-  print: function () {
-    var selectedPdfTheme = $("#easy-pdf-theme").find("option:checked");
-    if (selectedPdfTheme.length) {
-      if (this.logo && !this.logo[0].complete) return;
-      var logoData = selectedPdfTheme.data();
-      if (this.logoName !== logoData.logo) {
-        this.logoName = logoData.logo;
-        this.logo = $('<img width="220" /><br>')
-            .load(function () {
-              ysy.view.print.print();
-            })
-            .attr("src", logoData.logo);
-        return;
+ysy.pro = ysy.pro || {};
+ysy.pro.print = {
+  printPrepared: false,
+  patch: function () {
+    var self = this;
+    var mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addListener(function (mql) {
+      if (mql.matches) {
+        self.beforePrint();
+      } else {
+        self.afterPrint();
       }
-    }
+    });
+    window.onbeforeprint = $.proxy(this.beforePrint, this);
+    window.onafterprint = $.proxy(this.afterPrint, this);
 
-    gantt._backgroundRenderer.switchFullRender(true);
-    gantt._unset_sizes();
+    window.easyModel = window.easyModel || {};
+    window.easyModel.print = window.easyModel.print || {};
+    window.easyModel.print.functions = window.easyModel.print.functions || [];
+
+    window.easyModel.print.functions.push(this.printToTemplate);
+
+  },
+  directPrint: function () {
+    window.print();
+  },
+  beforePrint: function (stripWidth, hideHeading) {
+    var self = ysy.pro.print;
+    if (self.printPrepared) return;
     var $wrapper2 = $("#wrapper2");
     var $wrapper3 = $("#wrapper3");
     if (ysy.view.affix.setPosition) {
       ysy.view.affix.setPosition(0);
     }
     $("#print_area").remove();
-    var $print = $('<div id="print_area"></div>').appendTo($wrapper2);
+    var $print = $('<div id="print_area"></div>');
 
-    if (this.logoName) {
-      $print.append(this.logo);
-      $print.append('<style>                                           \
-                       .gantt_grid_head_cell, .gantt_scale_cell{       \
-                          background: ' + logoData.headerColor + ' !important; \
-                          color: ' + logoData.headerFontColor + ' !important;  \
-                        }                                              \
-                     </style>');
+    if (hideHeading) {
+      var headerText = '';
+    } else {
+      if (ysy.settings.project) {
+        headerText = '<h1 class="gantt-print-header-project gantt-print-header-header">' + ysy.settings.project.name + '</h1>'
+            + '<h2 class="gantt-print-header-plugin gantt-print-header-header">&nbsp;- '
+            + (ysy.settings.resource.open ? ysy.settings.labels.titles.title_rm : ysy.settings.labels.titles.easyGantt)
+            + '</h2>';
+      } else {
+        headerText = '<h1 class="gantt-print-header-plugin gantt-print-header-header">'
+            + (ysy.settings.resource.open ? ysy.settings.labels.titles.title_rm : ysy.settings.labels.titles.easyGantt)
+            + '</h1>';
+
+      }
+
     }
+    var $headerCont = $('<div class="gantt-print-header-cont"></div>');
 
+    $headerCont.html(headerText);
+    // $print.append($headerCont);
+    var $gantt = $('<div class="gantt-print-gantt"></div>');
+    $print.append($gantt);
     var fullWidth = gantt._tasks.full_width;
-    var pageWidth = 450;
-    var $grid = ysy.view.print.cloneGrid();
-    $print.append($grid);
+    stripWidth = stripWidth || 490;
+    var $grid = self.cloneGrid();
+    $print.prepend($headerCont);
+    $gantt.append($grid);
     var gridWidth = $grid.outerWidth();
-    for (var p = -gridWidth; p < fullWidth; p += pageWidth) {
-      $print.append(ysy.view.print.createStrip(p < 0 ? 0 : p, p + pageWidth));
+    for (var p = -gridWidth; p < fullWidth; p += stripWidth) {
+      $gantt.append(self.createStrip(p < 0 ? 0 : p, Math.min(p + stripWidth, fullWidth)));
       //p -= 2;
     }
+    $(".gantt-print-strip, .gantt-print-grid").css("margin-top", $headerCont.height() + 5);
     $wrapper3.hide();
-    window.print();
-    $wrapper3.show();
+    $(".gantt_hor_scroll").hide();
+    $wrapper2.append($print);
+    self.printPrepared = true;
 
-    $print.remove();
+  },
+  afterPrint: function () {
+    setTimeout(function () {
+      if (!ysy.pro.print.printPrepared) return;
+      $("#print_area").remove();
 
-    //gantt._set_sizes();
-    gantt._backgroundRenderer.switchFullRender(false);
-    gantt._scroll_resize();
+      $("#wrapper3").show();
+      $("#content, #sidebar").removeClass("fake-responsive");
+
+      gantt._scroll_resize();
+      ysy.pro.print.printPrepared = false;
+    }, 100);
+  },
+  printToTemplate:function () {
+    var printFit = $("#easy_gantt_print_fit_checkbox").is(":checked");
+    ysy.pro.print.beforePrint(printFit ? Infinity : undefined, true);
+
+    var width = $(".gantt_container").width();
+    var content = $("#print_area").html() + ysy.view.templates.printIncludes;
+    // TODO  add easy_gantt_pro.css
+    // TODO  add easy_gantt_resources.css
+
+    if (printFit) {
+      content = '<div class="gantt-template-print-nowrap easy-print-page-fitting">' + content + '</div>';
+    }
+
+    // window.easyModel.print.tokens['easy_gantt_current_base64'] = $.base64.encode(content);
+    window.easyModel.print.tokens['easy_gantt_current'] = content;
+    window.easyModel.print.setWidth(width);
+    ysy.pro.print.afterPrint();
   },
   cloneGrid: function () {
     var $gantt_cont = $("#gantt_cont");
     var $grid = $gantt_cont.find(".gantt_grid").clone().addClass("gantt-print-grid");
+    $grid.find("a").each(function () {
+      var $this = $(this);
+      $this.parent().append('<span class="' + this.className + '">' + $this.text() + '</span>');
+      $this.remove();
+    });
     var $gridScale = $grid.find(".gantt_grid_scale");
     $gridScale.css({height: $gridScale.height() + 1 + "px", transform: "none"});
     return $grid;
@@ -77,16 +129,15 @@ ysy.view.print = {
     var $gantt_data_area = $gantt_cont.find(".gantt_data_area");
     var $data = $('<div class="gantt_data_area"></div>').css({
       height: $gantt_data_area.height() + "px",
-      width: $gantt_data_area.width() + "px"
+      width: (end - start) + "px"
     });
     // BACKGROUND
-    $data.append(this.cloneBackground($gantt_data_area, start, end));
-
-    // LINKS
-    $data.append(this.cloneLinks($gantt_data_area, start, end));
+    $data.append(this.cloneSvgBackground($gantt_data_area, start, end));
 
     // TASKS
     $data.append(this.cloneTasks($gantt_data_area, start, end));
+    // LINKS
+    $data.append(this.cloneLinks($gantt_data_area, start, end));
 
     $strip.append($data);
 
@@ -95,8 +146,8 @@ ysy.view.print = {
   cloneScales: function ($source, start, end) {
     var $scale = $(
         '<div class="gantt-print-scale gantt_task_scale"></div>');
-    for (var l = 0; l < 2; l++) {
-      var lines = $source.find(".gantt_scale_line");
+    var lines = $source.find(".gantt_scale_line");
+    for (var l = 0; l < lines.length; l++) {
       var oldLine = $(lines[l]);
       var cells = oldLine.find(".gantt_scale_cell");
       var $line = $('<div class="gantt_scale_line gantt-print-scale-line"></div>');
@@ -126,40 +177,34 @@ ysy.view.print = {
     }
     return $scale;
   },
-  cloneBackground: function ($source, start, end) {
-    var $gantt_task_bg = $source.find('.gantt_task_bg');
-    var fullWidth = $gantt_task_bg.width();
-    var $background = $('<div class="gantt_task_bg gantt-print-bg" style="width:' + (end - start) + 'px;"></div>');
-    var canvases = $gantt_task_bg.find("canvas");
-    var nextRound = true;
-    var leftPointer = 0;
-    for (var i = 0; i < canvases.length; i++) {
-      var oldCanvas = $(canvases[i]);
-      var canvasWidth = oldCanvas.width();
-      if (nextRound) {
-        var canvasHeight = oldCanvas.height();
-        var $canvas = $('<canvas class="gantt-print-bg-canvas" width="' + (end - start) + '" \
-            height="' + canvasHeight + '" \
-            style="width:' + (end - start) + 'px;height:' + canvasHeight + 'px;"></canvas>');
-        var ctx = $canvas[0].getContext('2d');
-        $background.append($canvas);
-        nextRound = false;
-      }
+  cloneSvgBackground: function ($source, startX, endX) {
+    var $background = $('<div class="gantt_task_bg gantt-print-bg" style="width:' + (endX - startX) + 'px"></div>');
+    var svg = SVG($background[0]);
+    $(svg.node).css({position: "absolute"});
+    var itemIds = gantt._order;
+    var items = itemIds.map(function (itemId) {
+      return gantt._pull[itemId];
+    });
 
-      if (leftPointer < end && leftPointer + canvasWidth > start) {
-        var realStart = Math.max(leftPointer, start);
-        //ysy.log.debug("drawImage "+JSON.stringify([i, realStart - leftPointer, 0, end - realStart, canvasHeight, realStart - start, 0, end - realStart, canvasHeight]));
 
-        ctx.drawImage(canvases[i], realStart - leftPointer, 0, end - realStart, canvasHeight, realStart - start, 0, end - realStart, canvasHeight);
-
-      }
-      leftPointer += canvasWidth;
-      if (leftPointer >= fullWidth) {
-        leftPointer = 0;
-        nextRound = true;
-      }
+    var cfg = gantt._tasks;
+    var fullHeight = itemIds.length * cfg.height;
+    var colWidth = cfg.col_width;
+    var countX = cfg.count;
+    var countY = items.length;
+    var endCountX = Math.ceil(endX / colWidth);
+    var startCountX = Math.floor(startX / colWidth);
+    if (endCountX > countX) {
+      endCountX = countX;
     }
-    return $background;
+    gantt._backgroundRenderer._render_bg_canvas(svg, items, {
+      fromX: startCountX,
+      toX: endCountX,
+      fromY: 0,
+      toY: countY
+    });
+    svg.node.style.left = (cfg.left[startCountX] - startX) + "px";
+    return $background.height(fullHeight);
   },
   cloneLinks: function ($source, start, end) {
     var $gantt_links_area = $source.find(".gantt_links_area");
@@ -187,8 +232,8 @@ ysy.view.print = {
       var task = taskArray[i];
       var left = parseInt(task.style.left) - 50;
       var width = task.offsetWidth + 300;
-      //ysy.log.debug("start: "+(left+task.offsetWidth)+"<"+start+" end: "+ left + ">"+ end);
-      if (left > end || left + width < start) continue;
+      // ysy.log.debug(JSON.stringify({text: $(task).text(), start: (left + task.offsetWidth) + "<" + start,  end: left + ">" + end}));
+      if (left >= end || left + width <= start) continue;
       $tasks.append($(task).clone());
     }
     var sourceCanvases = $gantt_bars_area.find("canvas");
@@ -201,3 +246,26 @@ ysy.view.print = {
     return $tasks;
   }
 };
+//######################################################################################################################
+ysy.pro = ysy.pro || {};
+ysy.pro.pdfPrint = ysy.pro.pdfPrint || {};
+$.extend(ysy.pro.pdfPrint, {
+  beats: 0,
+  targetBeat: 2,
+  patch: function () {
+    if (!ysy.settings.pdfPrint) return;
+    ysy.data.loader.register(function () {
+      ysy.view.onRepaint.push($.proxy(this.repaint, this));
+    }, this);
+  },
+  repaint: function () {
+    if (this.beats > this.targetBeat) return;
+    // skip first few renders
+    if (this.beats === this.targetBeat) {
+      gantt._backgroundRenderer.switchFullRender(true);
+      gantt._unset_sizes();
+      // window.print();
+    }
+    this.beats++;
+  }
+});

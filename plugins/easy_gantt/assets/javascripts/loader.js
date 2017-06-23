@@ -39,12 +39,12 @@ $.extend(ysy.data.loader, {
     settings.sumRow.init({_name: "SumRow"});
     settings.sample = new data.Data();
     data.limits = new data.Data();
-    data.limits.init({openings: {}});
-    data.relations = new data.Array();
-    data.issues = new data.Array();
-    data.milestones = new data.Array();
-    data.projects = new data.Array();
-    data.baselines = new data.Array();
+    data.limits.init({_name:"Limits",openings: {}});
+    data.relations = new data.Array().init({_name:"RelationArray"});
+    data.issues = new data.Array().init({_name:"IssueArray"});
+    data.milestones = new data.Array().init({_name:"MilestoneArray"});
+    data.projects = new data.Array().init({_name:"ProjectArray"});
+    data.baselines = new data.Array().init({_name:"BaselineArray"});
     ysy.view.patch();
     ysy.proManager.patch();
     settings.sample.init();
@@ -56,23 +56,22 @@ $.extend(ysy.data.loader, {
     //this.projects=new ysy.data.Array;
     //var data=ysy.availableProjects;
     ysy.log.debug("load()", "load");
-    ysy.gateway.loadGanttdata(
-        $.proxy(this._handleMainGantt, this),
-        function () {
+    if (ysy.settings.sample.active) {
+      ysy.gateway.polymorficGetJSON(
+          ysy.settings.paths.sample_data.replace("{{version}}", ysy.settings.sample.active), null,
+          $.proxy(this._loadSampleData, this),
+          function () {
+            ysy.log.error("Error: Example data fetch failed");
+          }
+      );
+    } else {
+      ysy.gateway.loadGanttdata(
+          $.proxy(this._handleMainGantt, this),
+          function () {
             ysy.log.error("Error: Unable to load data");
-        }
-    );
-  },
-  loadProject: function(projectID){
-    ysy.gateway.polymorficGetJSON(
-      ysy.settings.paths.projectGantt.replace(':projectID',projectID),
-      {opened_project_id: projectID},
-      $.proxy(this._handleProjectData, this),
-        function () {
-            ysy.log.error("Error: Unable to load data");
-        }
-    );
-
+          }
+      );
+    }
   },
   loadSubEntity: function (type, id) {
     if (type === "project" && this.loadProject) {
@@ -90,60 +89,9 @@ $.extend(ysy.data.loader, {
         continue;
       }
       //this.onChangeNew[i].func();
-      ysy.log.log("-- changes to " + ctx.name + " widget");
+      ysy.log.log("-- changes to " + (ctx.name ? ctx.name : ctx._name) + " widget");
       $.proxy(this._onChange[i].func, ctx)();
     }
-  },
-  _processColumns: function (columns) {
-    var expandees = {
-      assigned_to: {
-        source: "/easy_auto_completes/assignable_users?issue_id={{issue_id}}",
-        type: "select",
-        target: "issue[assigned_to_id]"
-      },
-      status: {
-        target: "issue[status_id]",
-        type: "select",
-        source: "/easy_auto_completes/allowed_issue_statuses?issue_id={{issue_id}}"
-      },
-      priority: {
-        target: "issue[priority_id]",
-        type: "select",
-        source: "/easy_auto_completes/issue_priorities"
-      },
-      estimated_hours: {
-        target: "issue[estimated_hours]",
-        type: "hours",
-        mapped: "estimated_hours"
-      }
-    };
-    for (var i = 0; i < columns.length; i++) {
-      $.extend(columns[i], expandees[columns[i].name]);
-    }
-    return columns;
-  },
-  _handleProjectData:function(data){
-      ////cconssole.log("_handleProjectData");
-      var json = data.easy_gantt_data;
-      ysy.data.columns = this._processColumns(json.columns);
-      // ARRAY FILLING
-      //  -- PROJECTS --
-      this._loadProjects(json.projects);
-      //  -- ISSUES --
-      this._loadIssues(json.issues);
-      //  -- MILESTONES --
-      this._loadMilestones(json.versions); // after issue loading because of shared milestones
-      //  -- RELATIONS --
-      this._loadRelations(json.relations);
-      this._loadHolidays(json.holidays);
-      //  -- SCHEMES --
-      if (this._loadSchemes) this._loadSchemes(json.schemes);
-
-      ysy.log.debug("data loaded", "load");
-      ysy.log.message("JSON loaded");
-      this._fireChanges();
-      ysy.history.clear();
-      this.loaded = true;
   },
   _handleMainGantt: function (data) {
     if (!data.easy_gantt_data) return;
@@ -155,7 +103,7 @@ $.extend(ysy.data.loader, {
     //  end_date: moment(json.end_date, "YYYY-MM-DD")
     //});
     //  -- COLUMNS --
-    ysy.data.columns = this._processColumns(json.columns);
+    ysy.data.columns = json.columns;
     // ARRAY INITIALIZATION
     //  -- RELATIONS --
     ysy.data.relations.clear();

@@ -9,15 +9,15 @@ RSpec.feature 'Add task', logged: :admin, js: true do
 
   describe 'toolbar' do
 
-    #unless Redmine::Plugin.installed?(:easy_gantt_pro)
-    #  scenario 'should open help' do
-    #    visit easy_gantt_path(project)
-    #    wait_for_ajax
-    #    expect(page).to have_selector('#button_add_task_help', text: I18n.t(:label_new))
-    #    page.find('#button_add_task_help').click
-    #    expect(page).to have_selector('#add_task_help_modal_popup')
-    #  end
-    #end
+    unless Redmine::Plugin.installed?(:easy_gantt_pro)
+      scenario 'should open help' do
+        visit easy_gantt_path(project)
+        wait_for_ajax
+        expect(page).to have_selector('#button_add_task_help', text: I18n.t(:label_new))
+        page.find('#button_add_task_help').click
+        expect(page).to have_selector('#add_task_help_modal_popup')
+      end
+    end
 
   end
 end

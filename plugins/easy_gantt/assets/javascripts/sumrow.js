@@ -73,7 +73,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.SumRow, {
     ysy.data.projects.childRegister(this.invalidateProjects, this);
     ysy.data.issues.register(this.invalidateIssues, this);
     ysy.data.projects.register(this.invalidateProjects, this);
-    gantt.attachEvent("onGanttRender", this.requestRepaint);
+    gantt.attachEvent("onGanttRender", $.proxy(this.requestRepaint, this));
   },
   nopeFormatter: function () {
     return ""
@@ -89,6 +89,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.SumRow, {
   getSubScale: function (zoom) {
     var summer = ysy.pro.sumRow.summers[ysy.settings.sumRow.summer];
     if (!summer) return;
+    ysy.log.debug("getSubScale for " + summer.title, "summer");
     this.summer = summer;
     this.updateTemper();
     var temper = this.temper;
@@ -131,6 +132,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.SumRow, {
   },
   _repaintCore: function () {
     if (!ysy.settings.sumRow.active) return;
+    ysy.log.debug("sumRow repaintCore", "summer");
     var summer = ysy.pro.sumRow.summers[ysy.settings.sumRow.summer];
     if (!summer) return;
     this.summer = summer;
@@ -160,7 +162,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.SumRow, {
     var mover = moment(gantt._min_date);
     var maxDate = moment(gantt._max_date);
     var issues = this.getEntities();
-    var lastValue = 0;
+    // var lastValue = 0;
     if (unit === "day") {
       while (mover.isBefore(maxDate)) {
         var count = 0;
@@ -171,7 +173,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.SumRow, {
         //   count += lastValue;
         // }
         values.push(count);
-        lastValue = count;
+        // lastValue = count;
         mover.add(1, unit);
       }
     } else {
@@ -185,7 +187,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.SumRow, {
         //   count += lastValue;
         // }
         values.push(count);
-        lastValue = count;
+        // lastValue = count;
         mover.add(2, unit);
         var tempMover = mover;
         mover = nextMover;

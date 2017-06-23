@@ -2,8 +2,9 @@ module EasyGanttHelper
 
   def easy_gantt_js_button(text, options={})
     if text.is_a?(Symbol)
-      text = l(text, scope: [:easy_gantt, :button])
-      options[:title] ||= l(text, scope: [:easy_gantt, :title], default: text)
+      lang_key = text
+      text = l(lang_key, scope: [:easy_gantt, :button])
+      options[:title] ||= l(lang_key, scope: [:easy_gantt, :title], default: text)
     end
     options[:class] = "gantt-menu-button #{options[:class]}"
     options[:class] << ' button button-2' unless options.delete(:no_button)
@@ -98,7 +99,7 @@ module EasyGanttHelper
 
   end
 
-  def api_render_issues(api, issues, with_columns: true)
+  def api_render_issues(api, issues, with_columns: false)
     api.array :issues do
       issues.each do |issue|
         api.issue do
@@ -108,7 +109,7 @@ module EasyGanttHelper
           api.due_date issue.due_date
           api.estimated_hours issue.estimated_hours
           api.done_ratio issue.done_ratio
-          api.css ' closed' if issue.closed?
+          api.closed issue.closed?
           api.fixed_version_id issue.fixed_version_id
           api.overdue issue.overdue?
           api.parent_issue_id issue.parent_id
@@ -176,7 +177,7 @@ module EasyGanttHelper
               @query.columns.each do |c|
                 api.column do
                   api.name c.name
-                  api.value c.value(project).to_s
+                  api.value gantt_format_column(c.value(project))
                 end
               end
             end
@@ -184,6 +185,15 @@ module EasyGanttHelper
 
         end
       end
+    end
+  end
+
+  def gantt_format_column(value)
+    if value.is_a?(Float)
+      locale = User.current.language.presence || ::I18n.locale
+      number_with_precision(value, locale: locale).to_s
+    else
+      value.to_s
     end
   end
 

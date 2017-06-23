@@ -1,0 +1,13 @@
+api.easy_cashflow_data do
+
+  api.array :projects do
+    @data.each do |project_id, project_data|
+      api.project do
+        api.project_id project_id
+        api.expected_revenues project_data[:revenues]
+        api.expected_expenses project_data[:expenses]
+      end
+    end
+  end
+
+end

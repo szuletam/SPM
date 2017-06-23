@@ -10,13 +10,6 @@ $.extend(ysy.view, {
       window.initEasyAutocomplete = function () {
       };
     }
-    if (!window.initInlineEditForContainer) {
-      window.initInlineEditForContainer = function () {
-        ysy.log.debug("inline edit bogus", "inline");
-      };
-    } else if (this.applyEasyPatch) {
-      this.applyEasyPatch();
-    }
     if (ysy.settings.easyRedmine && $("#content").children(".easy-content-page").length === 0) {
       $("#easy_gantt").addClass("easy-content-page");
     }

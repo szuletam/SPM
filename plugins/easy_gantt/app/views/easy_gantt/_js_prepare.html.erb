@@ -2,107 +2,142 @@
   <script type="text/javascript">
     window.ysy = window.ysy || {};
     ysy.settings = ysy.settings || {};
-    $.extend(true, ysy.settings, {
-      easyRedmine: <%= EasyGantt.easy_extensions? %>,
-      isGantt: <%= params[:controller] == 'easy_gantt' %>,
-      language: '<%= j I18n.locale.to_s %>',
-      <% if @project %>
-      project: <%= { id: @project.id, name: @project.name }.to_json.html_safe %>,
-      <% end %>
-//      apiKey: "<%= User.current.api_key %>",
-      dateFormat: '<%=j Setting.date_format %>',
-      nonWorkingWeekDays: <%= EasyGantt.non_working_week_days.to_json.html_safe %>,
+    $.extend(true, ysy.settings, <%= {
+      platform: EasyGantt.platform,
+      easyRedmine: EasyGantt.easy_extensions?,
+      isGantt: (params[:controller] == 'easy_gantt'),
+      language: I18n.locale.to_s,
+      project: ({ id: @project.id, name: @project.name } if @project),
+      dateFormat: (Setting.date_format.presence || I18n.t('date.formats.default')),
+      nonWorkingWeekDays: EasyGantt.non_working_week_days,
       holidays: [],
-      milestonePush: <%= (EasyGantt.easy_extensions? && !EasySetting.value('milestone_effective_date_from_issue_due_date')) ? true : false %>,
-      defaultZoom: "<%= EasySetting.value(:easy_gantt_default_zoom) %>",
+      milestonePush: ((EasyGantt.easy_extensions? && !EasySetting.value('milestone_effective_date_from_issue_due_date')) ? true : false),
+      workDayDelays: EasySetting.value(:easy_gantt_relation_delay_in_workdays),
+      defaultZoom: EasySetting.value(:easy_gantt_default_zoom),
       paths: {
-        rootPath: '<%= home_path %>'
+        rootPath: home_path
       },
       labels: {
         buttons: {
-          button_delete: '<%= l(:button_delete) %>',
-          button_submit: '<%= l(:button_submit) %>',
-          button_yes: '<%= l(:general_text_Yes) %>',
-          button_no: '<%= l(:general_text_No) %>',
-          button_cancel: '<%= l(:button_cancel) %>',
-          button_reload: '<%= l(:reload, :scope => [:easy_gantt, :button]) %>',
-          button_save: '<%= l(:button_save) %>'
+          button_delete: l(:button_delete),
+          button_submit: l(:button_submit),
+          button_yes: l(:general_text_Yes),
+          button_no: l(:general_text_No),
+          button_cancel: l(:button_cancel),
+          button_reload: l('easy_gantt.button.reload'),
+          button_save: l(:button_save)
         },
-        sample_text: '<%= l(:text, :scope => [:easy_gantt, :sample]).html_safe %>',
-        sample_global_free_text:'<%= l(:text, :scope => [:easy_gantt, :sample_global_free]).html_safe %>',
+        sample_text: l('easy_gantt.sample.text').html_safe,
+        sample_global_free_text: l('easy_gantt.sample_global_free.text').html_safe,
         date: {
-          month_full: <%=raw l('date.month_names').compact.to_json %>,
-          month_short: <%=raw l('date.abbr_month_names').compact.to_json %>,
-          day_full: <%=raw l('date.day_names').compact.to_json %>,
-          day_short: <%=raw l('date.abbr_day_names').compact.to_json %>
+          month_full: Array(l('date.month_names')).compact,
+          month_short: Array(l('date.abbr_month_names')).compact,
+          day_full: Array(l('date.day_names')).compact,
+          day_short: Array(l('date.abbr_day_names')).compact
         },
-        types:{
-          project:'<%= l(:field_project) %>',
-          issue:'<%= l(:field_issue) %>',
-          milestone:'<%= l(:field_version) %>',
-          relation:'<%= l(:field_relation) %>'
+        types: {
+          project: l(:field_project),
+          issue: l(:field_issue),
+          milestone: l(:field_version),
+          relation: l(:field_relation)
         },
-        errors: <%=raw l('activerecord.errors.messages').compact.to_json %>,
-        errors2:{
-          unsaved_parent:'<%= l(:unsaved_parent, :scope => [:easy_gantt, :errors]) %>'
+        errors: Array(l('activerecord.errors.messages')).compact,
+        errors2: {
+          unsaved_parent: l('easy_gantt.errors.unsaved_parent')
         },
-        problems:{
-          overMilestone:'<%= l(:overmile, :scope => [:easy_gantt, :errors]) %>',
-          too_short:'<%= l(:too_short, :scope => [:easy_gantt, :errors]) %>',
-          overdue: '<%= l(:overdue, :scope => [:easy_gantt, :errors]) %>',
-          shortDelay: '<%= l(:short_delay, :scope => [:easy_gantt, :errors]) %>'
+        problems: {
+          overMilestone: l('easy_gantt.errors.overmile'),
+          too_short: l('easy_gantt.errors.too_short'),
+          overdue: l('easy_gantt.errors.overdue'),
+          shortDelay: l('easy_gantt.errors.short_delay')
         },
-        gateway:{
-          sendFailed:"<%= l(:send_failed, :scope => [:easy_gantt, :gateway]) %>",
-          entitySaveFailed:"<%= l(:entity_save_failed, :scope => [:easy_gantt, :gateway]) %>",
-          allSended:"<%= l(:notice_successful_update) %>"
+        gateway: {
+          sendFailed: l('easy_gantt.gateway.send_failed'),
+          entitySaveFailed: l('easy_gantt.gateway.entity_save_failed'),
+          allSended: l(:notice_successful_update)
+        },
+        titles: {
+          easyGantt: l(:heading_easy_gantts_issues)
+        }
+      },
+      styles: {
+        backgrounds:{
+          weekend: 'rgba(204, 204, 204,0.4)',
+          selected: '#fff3a1',
+          line: 'rgba(200,200,200,0.5)',
+          line_month: '#aaaaff',
+          assignee: 'rgba(200,200,200,0.15)',
+          darkLimits: 'rgba(62,91,118,0.15)'
         }
       }
-    });
-
-
+    }.to_json.html_safe %>)
 
     ysy.view = ysy.view || {};
-    ysy.view.templates = $.extend(ysy.view.templates, {
-      TaskTooltip:
-        '<div class="name"><b>{{name}}</b></div>\
-        <div class="start_date"><%= l(:field_start_date) %>: <strong>{{start_date}}</strong></div>\
-        {{#end_date}}\
-        <div class="end_date"><%= l(:field_due_date) %>: <strong>{{end_date}}</strong></div>\
-        {{/end_date}}\
-        {{#columns}}\
-          <div class="gantt-tooltip-column-{{name}}">{{label}}: <strong>{{value}}</strong></div>\
-        {{/columns}}\
-        {{#problems}}\
-          <div class="gantt-tooltip-problem">{{.}}</div>\
-        {{/problems}}\
-      ',
-      Button:'<span class="button {{active}}" title="{{title}}"><a id="{{elid}}_button_in" class="gantt_button{{icon}}" href="javascript:void(0)" >{{name}}</a></span>',
-      LinkButton:'<a class="{{css}}" title="{{title}}" href="javascript:void(0)">{{name}}</a>',
-      SuperPanel:" ",
-      reloadModal:'\
-        <h3 class="title"><%= l(:title, :scope => [:easy_gantt, :reload_modal]) %></h3>\
-        <h4><%= l(:label_errors, :scope => [:easy_gantt, :reload_modal]) %>:</h4>\
-        <ul class="gantt-reload-modal-errors">\
-          {{#errors}}\
-            <li class="gantt-reload-model-error">{{.}}</li>\
-          {{/errors}}\
-        </ul>\
-        <p><%= l(:text_reload_appeal, :scope => [:easy_gantt, :reload_modal]) %></p>\
-      ',
-      preBlocker:'<div style="left:{{pos_x}}px" class="gantt_task_relation_stop gantt_task_relation_stop_left" title="<%= l(:text_blocker_move_pre, :scope => [:easy_gantt]) %>"></div>',
-      ProblemFinder:'\
-        <%= l(:problem_finder, :scope => [:easy_gantt, :button]) %>:\
-        <span class="gantt-menu-problems-count{{#count}} gantt-with-problems{{/count}}">{{count}}</span>\
-      ',
-      ProblemFinderList:'\
-        {{#issues}}\
-          <a href="javascript:ysy.pro.problemFinder.scrollToIssue({{issueId}})"><%= l(:field_issue) %> <strong>{{name}}</strong> {{text}}</a><br>\
-        {{/issues}}\
-        {{#relations}}\
-          <a href="javascript:ysy.pro.problemFinder.scrollToIssue({{issueId}})"><%= l(:field_relation) %> <strong> {{sourceName}}</strong> - <strong>{{targetName}}</strong> {{text}}</a><br>\
-        {{/relations}}\
-      '
-    });
+    ysy.view.templates = $.extend(ysy.view.templates, <%= {
+      TaskTooltip: %{
+        <h3 class="gantt-tooltip-header">{{name}}</h3>
+        {{#start_date}}
+          <div class="gantt-tooltip-start_date"><span class="gantt-tooltip-label">#{l(:field_start_date)}:</span> {{start_date}}</div>
+        {{/start_date}}
+        {{#end_date}}
+          <div class="gantt-tooltip-end_date"><span class="gantt-tooltip-label">#{l(:field_due_date)}:</span> {{end_date}}</div>
+        {{/end_date}}
+        {{#columns}}
+          <div class="gantt-tooltip-column-{{name}}"><span class="gantt-tooltip-label">{{label}}:</span> {{value}}</div>
+        {{/columns}}
+        {{#problems}}
+          <div class="gantt-tooltip-problem">{{.}}</div>
+        {{/problems}}
+      },
+      Button: %{
+        <span class="button {{active}}" title="{{title}}">
+          <a id="{{elid}}_button_in" class="gantt_button{{icon}}" href="javascript:void(0)">{{name}}</a>
+        </span>
+      },
+      LinkButton: %{
+        <a class="{{css}}" title="{{title}}" href="javascript:void(0)">{{name}}</a>
+      },
+      SuperPanel: %{},
+      reloadModal: %{
+        <h3 class="title">#{l('easy_gantt.reload_modal.title')}</h3>
+        <h4>#{l('easy_gantt.reload_modal.label_errors')}:</h4>
+        <ul class="gantt-reload-modal-errors">
+          {{#errors}}
+            <li class="gantt-reload-model-error">{{.}}</li>
+          {{/errors}}
+        </ul>
+        <p>#{l('easy_gantt.reload_modal.text_reload_appeal')}</p>
+      },
+      preBlocker: %{
+        <div style="left:{{pos_x}}px" class="gantt_task_relation_stop gantt_task_relation_stop_left" title="#{l('easy_gantt.text_blocker_move_pre')}">
+        </div>
+      },
+      ProblemFinder: %{
+        #{l('easy_gantt.button.problem_finder')}:
+        <span class="gantt-menu-problems-count{{#count}} gantt-with-problems{{/count}}">{{count}}</span>
+      },
+      ProblemFinderList: %{
+        <ol>
+          {{#issues}}
+            <li>
+              <a href="javascript:ysy.pro.problemFinder.scrollToIssue({{issueId}})">
+                #{l(:field_issue)}: <strong>{{name}}</strong>
+                <br>
+                <span class="gantt-menu-problems-reason">{{text}}</span>
+              </a>
+            </li>
+          {{/issues}}
+          {{#relations}}
+            <li>
+              <a href="javascript:ysy.pro.problemFinder.scrollToIssue({{issueId}})">
+                #{l(:field_relation)}: <strong>{{sourceName}}</strong> - <strong>{{targetName}}</strong>
+                <br>
+                <span class="gantt-menu-problems-reason">{{text}}</span>
+              </a>
+            </li>
+          {{/relations}}
+        </ol>
+      }
+    }.to_json.html_safe %>)
   </script>
 <% end %>

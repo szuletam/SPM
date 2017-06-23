@@ -6,17 +6,19 @@ class EasyGanttProjectQuery < Query
 
   self.available_columns = [
     QueryColumn.new(:name, sortable: "#{Project.table_name}.name"),
+    QueryColumn.new(:status, sortable: "#{Project.table_name}.status"),
     QueryColumn.new(:created_on, sortable: "#{Project.table_name}.created_on"),
     QueryColumn.new(:updated_on, sortable: "#{Project.table_name}.updated_on"),
   ]
 
   def initialize(*args)
     super
+    self.filters ||= {"status"=>{:operator=>"=", :values=>["1"]}}
     self.filters ||= {}
   end
 
   def default_columns_names
-    [:name, :created_on, :updated_on]
+    [:name]
   end
 
   def initialize_available_filters

@@ -130,7 +130,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttRender, {
     //ysy.data.limits.setSilent("pos", gantt.getScrollState());
     //var pos = ysy.data.limits.pos;
     //if (pos)ysy.log.debug("scrollSave pos={x:" + pos.x + ",y:" + pos.y + "}", "scroll");
-    gantt.render();
+    // gantt.render();
     this.tideFunctionality(); //   TIDE FUNCTIONALITY
     for (var i = 0; i < this.children.length; i++) {
       var child = this.children[i];
@@ -205,7 +205,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttTasks, {
     }
     gantt._sync_links();
     gantt.reconstructTree();
-    gantt.sort();
+    gantt.sort(gantt._sort && gantt._sort.criteria);
     //window.initInlineEditForContainer($("#gantt_cont")); // TODO
   }
 });
@@ -226,24 +226,25 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttTask, {
       $.extend(this.dhdata, gantt_issue);
       gantt.refreshTask(gantt_issue.id);
     } else {
-      if (this.dhdata) {
-        this.destroy();
-      }
+      this.destroyDhData();
       this.dhdata = gantt_issue;
       ysy.log.debug("addTaskNoDraw()", "load");
       gantt.addTaskFaster(gantt_issue);
     }
     //window.initInlineEditForContainer($("#gantt_cont"));  // TODO
   },
-  destroy: function (silent) {
-    if (this.dhdata) {
-      this.dhdata.deleted = true;
-      if (gantt.isTaskExists(this.dhdata.id)) {
-        gantt._deleteTask(this.dhdata.id, silent);
-      }
-      this.dhdata = null;
-      ysy.log.debug("Destroy for " + this.name, "widget_destroy");
+  destroyDhData: function (silent) {
+    if (!this.dhdata) return;
+    this.dhdata.deleted = true;
+    if (gantt.isTaskExists(this.dhdata.id)) {
+      gantt._deleteTask(this.dhdata.id, silent);
     }
+    this.dhdata = null;
+    ysy.log.debug("Destroy for " + this.name, "widget_destroy");
+  },
+  destroy: function (silent) {
+    this.destroyDhData(silent);
+    this.deleted = true;
   },
   _constructDhData: function (issue) {
     // var parent = issue.getParent() || 0;
@@ -251,7 +252,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttTask, {
       id: issue.getID(),
       real_id: issue.id,
       text: issue.name,
-      css: issue.css || '',
+      css: (issue.css || '') + (issue.closed ? ' closed' : ''),
       //model:issue,
       widget: this,
       order: this.order,
@@ -326,7 +327,10 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttTask, {
         end_date: moment(item.end_date)
       };
       fullObj.end_date._isEndDate = true;
-      $.extend(fullObj, this._constructParentUpdate(item.parent));
+      if(item._parentChanged){
+        $.extend(fullObj, this._constructParentUpdate(item.parent));
+        item._parentChanged=false;
+      }
       obj = fullObj;
       if (keys !== undefined) {
         obj = {};
@@ -345,15 +349,12 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttTask, {
         }
       }
       this.model.set(obj);
-      if (this.model.correctItselfByMilestone) {
-        this.model.correctItselfByMilestone();
-      }
     }
     this.requestRepaint();
   },
   _constructParentUpdate: function (parentId) {
-    var parent_issue_id = false;
-    var fixed_version_id = false;
+    var parent_issue_id = null;
+    var fixed_version_id = null;
     var project_id;
     if (typeof parentId !== "string") {
       parent_issue_id = parentId;
@@ -454,6 +455,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttLink, {
       this.dhdata = null;
       ysy.log.debug("Destroy for " + this.name, "widget_destroy");
     }
+    this.deleted = true;
   },
   _constructDhData: function (model) {
     return {
@@ -463,7 +465,6 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttLink, {
       type: model.isSimple ? "start_to_start" : model.type,
       skipPush: model.skipPush,
       delay: model.delay,
-      css: model.css,
       readonly: !model.isEditable(),
       widget: this
     };
@@ -477,7 +478,9 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttLink, {
       type: this.model.type || item.type,
       delay: item.delay
     });
-    this.model.pushTarget(this.model.getSource());
+    var allRequests = {};
+    this.model.sendMoveRequest(allRequests);
+    gantt.applyMoveRequests(allRequests);
     ysy.history.closeBrack();
   }
 
@@ -521,7 +524,7 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttRefresher, {
   },
   _repaintCore: function () {
     if (this.all) {
-      ysy.log.debug("refresher: _renderAll", "refresher");
+      ysy.log.debug("---- Refresher: _renderAll", "refresher");
       var visibleDate = gantt.getShowDate();
       if (!visibleDate) {
         visibleDate = ysy.data.limits.zoomDate;
@@ -534,11 +537,11 @@ ysy.view.extender(ysy.view.Widget, ysy.view.GanttRefresher, {
       delete gantt._backgroundRenderer.forceRender;
       ysy.view.affix.requestRepaint();
     } else if (this.data) {
-      ysy.log.debug("refresher: _renderData", "refresher");
+      ysy.log.debug("---- Refresher: _renderData", "refresher");
       this.model._render_data();
       if (this.all) return true;
     } else {
-      ysy.log.debug("refresher: _render for " + this.tasks.length + " tasks and " + this.links.length + " links", "refresher");
+      ysy.log.debug("---- Refresher: _render for " + this.tasks.length + " tasks and " + this.links.length + " links", "refresher");
       for (var i = 0; i < this.tasks.length; i++) {
         var taskId = this.tasks[i];
         this.model._refreshTask(taskId);

@@ -170,6 +170,7 @@ module EasyGantt
                          joins("JOIN #{p_table} p2 ON p2.lft >= #{p_table}.lft AND p2.rgt <= #{p_table}.rgt").
                          joins("JOIN #{i_table} i ON i.project_id = p2.id").
                          where("i.estimated_hours IS NOT NULL AND i.estimated_hours > 0").
+                         where("p2.status <> ?", Project::STATUS_ARCHIVED).
                          group("#{p_table}.id").
                          pluck("#{p_table}.id, (SUM(i.done_ratio / 100.0 * i.estimated_hours) / SUM(i.estimated_hours) * 100)").
                          to_h

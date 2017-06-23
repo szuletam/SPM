@@ -1129,7 +1129,7 @@ gantt._find_ev_handler = function(e, trg, hash, id){
   var res = true;
   while (trg){
     var css = trg.className || "";
-    if (css) {
+    if (typeof(css) === "string") {
       css = css.split(" ");
       for (var i = 0; i < css.length; i++) {
         if (!css[i]) continue;
@@ -1194,6 +1194,7 @@ dhtmlxDnD.prototype = {
     };
     if(this._settings)
         dhtmlx.mixin(this.config, this._settings, true);
+    e.preventDefault();
 
     var mousemove = dhtmlx.bind(function(e) { return this.dragMove(obj, e); }, this);
     var scroll = dhtmlx.bind(function(e) { return this.dragScroll(obj, e); }, this);
@@ -1228,7 +1229,7 @@ dhtmlxDnD.prototype = {
     this.actPos= e.pos;   // HOSEK
     dhtmlxEvent(document.body, "mousemove", limited_mousemove);
     dhtmlxEvent(document.body, "mouseup", mouseup);
-    document.body.className += " gantt_noselect";
+    // document.body.className += " gantt_noselect";
     this.callEvent("onDragStart", [obj,e]);
   },
   dragMove: function(obj, e) {
@@ -1272,7 +1273,7 @@ dhtmlxDnD.prototype = {
     if(this.config.started&&!this.config.ignore){
       this.callEvent("onDragEnd", []);
     }
-    document.body.className = document.body.className.replace(" gantt_noselect", "");
+    // document.body.className = document.body.className.replace(" gantt_noselect", "");
   },
   getDiff: function(e){
     //var pos=this.getPosition(e);
@@ -1442,14 +1443,10 @@ gantt._render_grid_header = function () {
 gantt._render_grid_item = function (item) {
   if (!gantt._is_grid_visible())
     return null;
-  return gantt._render_grid_superitem(item);
   if(!item.columns){
-    console.log("el anterior item hará _render_grid_superitem");
     return gantt._render_grid_superitem(item);
   }
   var columns = this.getGridColumns();
-  console.log("el anterior item hará getGridColumns");
-  console.log(columns);
   var cells = [];
   var width = 0;
   for (var i = 0; i < columns.length; i++) {
@@ -1825,10 +1822,13 @@ gantt._init_dnd = function (rearrange) {
           allowed = gantt.allowedParent(task,over);
         }
         if(over){
+          if(this.callEvent("onBeforeTaskMove", [task.id, over.id, 0]) === false)
+            return;
           //this.moveTask(task.id, -1, over.id);
           task.$drop_target = null;
           //task.widget.update(task,["fixed_version_id"]);
           gantt.silentMoveTask(task, over.id);
+          this.callEvent("onAfterTaskMove", [task.id, over.id, 0]);
           task.widget.update(task);
         }
       }                 //  HOSEK
@@ -2038,7 +2038,6 @@ gantt._scale_helpers = {
       width:[],
       left:[],
       trace_x:[],
-      weekends:[],
       date_cache:{}
     }, config);
 
@@ -2046,7 +2045,6 @@ gantt._scale_helpers = {
       cfg.count++;
       var dateObj=gantt.date.Date(date);
       cfg.trace_x.push(dateObj);
-      cfg.weekends.push(!gantt._working_time_helper.is_working_day(dateObj));
     });
 
     return cfg;
@@ -3784,11 +3782,11 @@ gantt._adjust_scales = function(){
 
 //refresh task and related links
 gantt.refreshTask = function(taskId, refresh_links){
+  gantt._update_parents(gantt.getParent(taskId));
   this.refresher.refreshTask(taskId);
 };
 gantt._refreshTask = function(taskId){
   var i;
-  gantt._update_parents(gantt.getParent(taskId));
   var renders = this._get_task_renderers();
 
   var task = this.getTask(taskId);
@@ -4018,7 +4016,7 @@ gantt._task_default_render = function(task){
   if(side) div.appendChild(side);
 
   if(!this._is_readonly(task)){
-    if(cfg.drag_resize /*&& !this._is_flex_task(task)*/ && controls.resize){
+    if(cfg.drag_resize && !this._is_flex_task(task) && controls.resize){
       gantt._render_pair(div, "gantt_task_drag", task, function(css){
         var el = document.createElement("div");
         el.className = css;
@@ -8293,7 +8291,7 @@ gantt._unset_sizes = function(){
   this.$grid.style.width =  gridWidth +"px";
   this.$grid.style.display = gridWidth === 0 ? 'none' : '';
 
-  boxSizes = this._get_box_styles();
+  var boxSizes = this._get_box_styles();
   this._x = boxSizes.innerWidth;
 
   if (this._x < 20) return;

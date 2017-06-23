@@ -109,7 +109,7 @@ $.extend(ysy.gateway, {
   fireSend: function (success, fail) {
     var requestList = [];
     var keys = Object.getOwnPropertyNames(this.requestsGroups);
-    if (keys.length === 0){
+    if (keys.length === 0) {
       success();
       return;
     }
@@ -170,7 +170,7 @@ $.extend(ysy.gateway, {
     temp.pointer++;
     if (req && !req.passed) {
       this.send(req);
-    }else{
+    } else {
       this._fireOne();
     }
   },
@@ -289,6 +289,7 @@ ysy.data.save = function () {
   );
 };
 ysy.data.saver = {
+  _name:"Saver",
   sendIssues: function () {
     var j, data;
     var issues = ysy.data.issues.array;
@@ -301,7 +302,7 @@ ysy.data.saver = {
       } else if (issue._created) {
         data = {issue: {}};
         for (var key in issue) {
-          if (!issue.hasOwnProperty(key))continue;
+          if (!issue.hasOwnProperty(key)) continue;
           if (ysy.main.startsWith(key, "_"))continue;
           data.issue[key] = issue[key];
         }
@@ -318,15 +319,20 @@ ysy.data.saver = {
         ysy.gateway.sendIssue("POST", null, data, this.callbackBuilder(issue));
         //ysy.log.error("Issue "+issue.id+" cannot be created - not implemented");
       } else {
-        data = {
+        data = {};
+        for (key in issue) {
+          if (!issue.hasOwnProperty(key)) continue;
+          if (ysy.main.startsWith(key, "_"))continue;
+          data[key] = issue[key];
+        }
+        delete data["end_date"];
+        delete data["columns"];
+        $.extend(data, {
           start_date: issue.start_date ? issue.start_date.format("YYYY-MM-DD") : undefined,
-          due_date: issue.end_date ? issue.end_date.format("YYYY-MM-DD") : undefined,
-          done_ratio: issue.done_ratio,
-          assigned_to_id: issue.assigned_to_id,
-          estimated_hours: issue.estimated_hours
-        };
-        parents = ysy.data.saver.constructParentData(issue);
-        $.extend(data, parents);
+          due_date: issue.end_date ? issue.end_date.format("YYYY-MM-DD") : undefined
+        });
+        // parents = ysy.data.saver.constructParentData(issue);
+        // $.extend(data, parents);
         ysy.proManager.fireEvent("beforeSaveIssue", data);
         data = issue.getDiff(data);
         if (data === null) {
@@ -435,10 +441,9 @@ ysy.data.saver = {
           if (model) {
             item.setSilent({
               id: model.id,
-              css: "gantt-" + model.css,
               _created: false
             });
-            item._fireChanges(this, "afterPOST set");
+            item._fireChanges(ysy.data.saver, "afterPOST set");
           }
         }
       }

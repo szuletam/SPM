@@ -1,0 +1,26 @@
+<% if EasyGantt.easy_extensions? %>
+  <label for="select_scheme_select"><%= l(:label_easy_color_schemes) %></label>
+  <select id="select_scheme_select" style="width: auto" title="<%= l('easy_gantt.scheme_by.label_color_by') %>:">
+    <% if @project %>
+      <option value="issue_priority"><%= l('easy_gantt.scheme_by.label_by_priority') %></option>
+      <option value="issue_status"><%= l('easy_gantt.scheme_by.label_by_status') %></option>
+      <option value="tracker"><%= l('easy_gantt.scheme_by.label_by_tracker') %></option>
+    <% else %>
+      <option value="project_priority"><%= l('easy_gantt.scheme_by.label_by_priority') %></option>
+      <option value="project_status"><%= l('easy_gantt.scheme_by.label_by_status') %></option>
+    <% end %>
+  </select>
+  <%= easy_gantt_js_button(l('easy_gantt.button.bulk_edit'), id: 'button_bulk_edit') unless @project.nil? %>
+<% end %>
+
+<% if EasySetting.value(:easy_gantt_show_project_progress) %>
+  <%= easy_gantt_js_button(:delayed_project_filter, id: 'button_delayed_project_filter') %>
+<% end %>
+<%= easy_gantt_js_button(:delayed_issue_filter, id: 'button_delayed_issue_filter') %>
+
+<% if @project.nil? && EasySetting.value(:easy_gantt_show_lowest_progress_tasks) %>
+  <%= easy_gantt_js_button(:show_lowest_progress_tasks, id: 'button_show_lowest_progress_tasks') %>
+<% end %>
+<% if @project.present? && EasyGantt.easy_money? %>
+  <%= easy_gantt_js_button(l('easy_gantt_pro.cashflow.label_cashflow'), id: 'button_cashflow', icon: 'icon-summary') %>
+<% end %>

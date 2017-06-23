@@ -5,7 +5,7 @@ module EasyGantt
     attr_accessor :opened_project
 
     def default_columns_names
-      [:subject, :assigned_to, :done_ratio, :estimated_hours]
+      [:subject, :priority, :assigned_to]
     end
 
     def entity
@@ -40,7 +40,7 @@ module EasyGantt
 
     def entity_scope
       @entity_scope ||= begin
-        scope = Issue.visible.in_roadmap
+        scope = Issue.visible
         if Project.column_names.include? 'easy_baseline_for_id'
           scope = scope.where(Project.table_name => {easy_baseline_for_id: nil})
         end

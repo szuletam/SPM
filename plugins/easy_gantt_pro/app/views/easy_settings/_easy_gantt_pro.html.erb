@@ -1,0 +1,29 @@
+<% # Its a hook only !!! %>
+
+<p>
+  <%= form.label l(:label_easy_gantt_critical_path) %>
+
+  <label class="radio block">
+    <%= form.radio_button :critical_path, 'disabled' %>
+    <%= l('easy_gantt.critical_path.disabled') %>
+  </label>
+
+  <label class="radio block">
+    <%= form.radio_button :critical_path, 'last' %>
+    <%= l('easy_gantt.critical_path.last') %>
+    <em>(<%= l('easy_gantt.critical_path.last_text') %>)</em>
+  </label>
+
+  <label class="radio block">
+    <%= form.radio_button :critical_path, 'longest' %>
+    <%= l('easy_gantt.critical_path.longest') %>
+    <em>(<%= l('easy_gantt.critical_path.longest_text') %>)</em>
+  </label>
+</p>
+
+<p>
+  <%= form.label l(:label_show_lowest_progress_tasks) %>
+  <%= form.check_box :show_lowest_progress_tasks %>
+  <br>
+  <em class="small"><%= l(:text_show_lowest_progress_tasks) %></em>
+</p>

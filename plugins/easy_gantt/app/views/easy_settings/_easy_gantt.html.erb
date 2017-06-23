@@ -17,6 +17,13 @@
   </p>
 
   <p>
+    <%= form.label :relation_delay_in_workdays, l(:field_easy_gantt_relation_delay_in_workdays) %>
+    <%= form.check_box :relation_delay_in_workdays %>
+    <br>
+    <em class="small"><%= l(:text_easy_gantt_relation_delay_in_workdays) %></em>
+  </p>
+
+  <p>
     <%= form.label :show_project_progress, l(:field_easy_gantt_show_project_progress) %>
     <%= form.check_box :show_project_progress %>
     <br>
