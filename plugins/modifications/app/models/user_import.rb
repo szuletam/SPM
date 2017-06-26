@@ -12,6 +12,7 @@ class UserImport < ActiveRecord::Base
   end
 
   def self.validate_import data
+    @errors = {}
     token = save_data data
     if token
       validate_obligatory token, :firstname
@@ -29,7 +30,13 @@ class UserImport < ActiveRecord::Base
   end
 
   def self.clean_import token
-    UserImport.where(:import_key => token).destroy_all
+    if token
+      ActiveRecord::Base.connection.execute(
+          "DELETE
+           FROM #{UserImport.table_name}
+           WHERE import_key = '#{token}'"
+      )
+    end
   end
 
   def self.validate_bosses token
@@ -41,7 +48,8 @@ class UserImport < ActiveRecord::Base
              UNION
              SELECT position_id
              FROM #{User.table_name}
-             WHERE #{User.table_name}.login COLLATE utf8_unicode_ci NOT IN (
+             WHERE position_id IS NOT NULL AND position_id != ''
+              AND #{User.table_name}.login COLLATE utf8_unicode_ci NOT IN (
                SELECT username
                FROM #{UserImport.table_name}
                WHERE username IS NOT NULL
@@ -95,19 +103,22 @@ class UserImport < ActiveRecord::Base
 
   def self.merge_data token
     UserImport.where(:import_key => token).each do |ui|
-      begin
-        user = User.find_by_login(ui.username)
-      rescue
+      user = User.find_by_login(ui.username)
+      unless user
         user = User.new
-        user.login = ui.username
+        user.login = ui.username.downcase
       end
       user.firstname = ui.firstname
       user.lastname = ui.lastname
-      user.mail = "#{ui.username}@renault.com" unless user.mail
       user.position_id = ui.position_id
       user.boss_id = ui.boss_id
-      user.auth_source_id = 1
       user.direction = Direction.find_by_name(ui.direction_name)
+
+      if user.new_record?
+        user.auth_source_id = 1
+        user.mail = "#{ui.username}@renault.com" unless user.mail
+      end
+
       user.save
     end
   end
@@ -133,12 +144,10 @@ class UserImport < ActiveRecord::Base
         ui.firstname = row['firstname']
         ui.lastname = row['lastname']
         ui.position_id = row['position_id']
-        ui.username = row['username']
         ui.boss_id = row['boss_id']
         ui.direction_name = row['direction_name']
         ui.row_excel = row['row_excel']
-        ui.user_id = row['user_id'] if row['user_id']
-        ui.username = row['username'] if row['username']
+        ui.username = row['username']
         ui.import_key = token
         ui.save
       rescue Exception => e
