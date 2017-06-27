@@ -22,15 +22,33 @@ module UserPatch
   end
   module InstanceMethods
 		def projects_subalterns
-			projects = []
-			subalterns.each do |user|
-				projects += user.projects unless user.projects.nil?
+			if @user_boss && @user_boss.id != self.id
+				@user_boss = self
+				@projects_subalterns = {}
 			end
-			projects.uniq
+			@user_boss ||= self
+			if @projects_subalterns && @projects_subalterns.any?
+				@projects_subalterns
+			else
+				projects = []
+				subalterns.each do |user|
+					projects += user.projects unless user.projects.nil?
+				end
+				@projects_subalterns = projects.uniq
+			end
 		end
 
 		def subalterns
-			descendants.any? ? descendants : []
+			if @userboss && @userboss.id != self.id
+				@userboss = self
+				@subalterns = {}
+			end
+			if @subalterns && @subalterns.any?
+				@subalterns
+			else
+				@userboss ||= self
+				@subalterns ||= (descendants.any? ? descendants : [])
+			end
 		end
 
 		def boss? project

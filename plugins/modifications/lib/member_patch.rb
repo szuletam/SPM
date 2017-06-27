@@ -10,12 +10,24 @@ module MemberPatch
 		has_many :projects, :through => :owner_projects
 
 		def self.get_owner_projects(user)
-			return [] unless user
-			projects = []
-			decendants = []
-			Member.where(:user_id => user.id).select{|m| m.projects.any? }.map{|m| projects += m.projects.active.select{|p| p.is_strategy? } }
-			projects.each {|p| decendants += p.self_and_descendants }
-			decendants.uniq
+			if @user_owner && @user_owner.id != user.id
+				@user_owner = user
+				@owner_projects = {}
+			end
+			@user_owner ||= user
+			if @owner_projects && @owner_projects.any?
+				@owner_projects
+			else
+				unless user
+					@owner_projects = {}
+					return @owner_projects
+				end
+				projects = []
+				decendants = []
+				Member.where(:user_id => user.id).select{|m| m.projects.any? }.map{|m| projects += m.projects.active.select{|p| p.is_strategy? } }
+				projects.each {|p| decendants += p.self_and_descendants }
+				@owner_projects = decendants.uniq
+			end
 		end
 
 	end
