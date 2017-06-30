@@ -137,13 +137,13 @@ class Issue < ActiveRecord::Base
           end
           where_owner_projects = owner_projects.any? ? " OR #{table_name}.project_id IN (#{owner_projects.map{|p| p.id}.join(',')})" : ""
 
-          projects_subalterns = user.projects_subalterns
-          subalterns = user.subalterns
           where_boss = ''
-          if subalterns.any? && projects_subalterns.any?
-            where_boss = " OR (#{table_name}.project_id IN (#{projects_subalterns.map{|p| p.id}.join(',')}) AND #{table_name}.assigned_to_id IN (#{subalterns.map{|u| u.id if u}.join(',')}))"
+          if role.name == 'Boss'
+            subalterns = user.subalterns
+            if subalterns.any?
+              where_boss = " OR #{Issue.table_name}.assigned_to_id IN (#{subalterns.map{|u| u.id if u}.join(',')})"
+            end
           end
-
           "(#{table_name}.author_id = #{user.id} OR #{table_name}.assigned_to_id IN (#{user_ids.join(',')})) #{issues_my_direction} #{where_owner_projects} #{where_boss}"
         else
           '1=0'
@@ -177,6 +177,13 @@ class Issue < ActiveRecord::Base
             owner_projects = []
             my_projects.each do |p|
               owner_projects += p.self_and_descendants
+            end
+
+            if role.name == 'Boss'
+              subalterns = user.subalterns
+              if subalterns.any?
+                return true if self.assigned_to && subalterns.include?(self.assigned_to)
+              end
             end
 
           self.author == user || user.is_or_belongs_to?(assigned_to) || direction_id == user.direction_id || owner_projects.map{|p| p.id}.include?(project_id)

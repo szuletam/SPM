@@ -553,8 +553,10 @@ class User < Principal
   def roles_for_project(project)
     # No role on archived projects
     return [] if project.nil? || project.archived?
-    if membership = membership(project)
-      membership.roles.to_a
+    roles = []
+    if (membership = membership(project)) || (self.projects_subalterns.include?(project))
+      roles += membership.roles.to_a if membership
+      roles << Role.find_by_name('Boss') if self.projects_subalterns.include?(project)
     elsif project.is_public?
       project.override_roles(builtin_role)
     else
@@ -584,10 +586,14 @@ class User < Principal
         end
       end
     end
-    
+
     hash.each do |role, projects|
       projects.uniq!
     end
+
+    #load projects where subalterns is
+    boss = Role.find_by_name("Boss")
+    hash[boss] = self.projects_subalterns if boss
 
     @projects_by_role = hash
   end
@@ -631,12 +637,6 @@ class User < Principal
       return false unless context.allows_to?(action)
       # Admin users are authorized for anything else
       return true if admin?
-
-      if action.is_a?(Hash)
-        return true if boss?(context) && action[:action] != 'settings'
-      elsif action.is_a?(Symbol)
-        return true if boss?(context) && action != :edit_project
-      end
 
       roles = roles_for_project(context)
       return false unless roles
