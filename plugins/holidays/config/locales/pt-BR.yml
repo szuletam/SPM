@@ -1,0 +1,6 @@
+# Spanish strings go here for Rails i18n
+pt-BR:
+  label_holidays: "Festivos"
+  label_holiday_new: "Novo festivo"
+  field_date: "Data"
+  field_year: "Ano"

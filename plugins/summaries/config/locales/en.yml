@@ -1,3 +1,12 @@
 # English strings go here for Rails i18n
 en:
-  # my_label: "My label"
+  permission_summaries: "Summary"
+  project_module_summaries: "Summary"
+  label_summaries: "Summary"
+  field_summaries: "Summary"
+  label_tasks_delayeds: "Delayed tasks"
+  label_due_on_7: "Expire in 7 days"
+  label_due_on_8: "Expires 8 to 30 days"
+  label_due_on_30: "Expires in +30 days"
+  pending_close: "Closing earrings"
+  label_tasks_opened: "Open tasks"

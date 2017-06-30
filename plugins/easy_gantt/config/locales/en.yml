@@ -7,7 +7,6 @@ en:
   easy_gantt:
     button:
       close_all: Close all
-      close_all_parent_issues: Close all parent tasks
       create_baseline: Baselines
       critical_path: Critical path
       day_zoom: Days
@@ -15,28 +14,26 @@ en:
       jump_today: Jump to today
       load_sample_data: Load sample data
       month_zoom: Months
-      print_fit: Fit to page
       problem_finder: Problems
       reload: Reload (save)
-      remove_delay: Remove delay
       resource_management: Resource management
       tool_panel: Tools
       week_zoom: Weeks
     critical_path:
       disabled: Disabled
       last: Last
-      last_text: Tasks which should not be delayed
+      last_text: Issues which should not be delayed
       longest: Longest
-      longest_text: Show longest sequence of tasks
+      longest_text: Show longest sequence of issues
     errors:
       duplicate_link: Cannot create duplicate link
       fresh_milestone: Cannot add task to non-saved milestone. Save the milestone
         first.
       link_target_new: Cannot create link to unsaved task. Save the changes first.
-      link_target_readonly: Read-only target task
+      link_target_readonly: Read-only target issue
       loop_link: Cannot create looped link
       no_rest_api: Easy Gantt needs REST API enabled. Turn it on in Administration
-        -> Settings -> API -> Enable REST web service
+        -> Settings -> Authentification -> Enable REST web service
       overdue: should end in future or should be closed already
       overmile: should end on %{effective_date} in order to keep milestone
       short_delay: should be longer by %{diff} days
@@ -52,7 +49,7 @@ en:
       link_start: as following
     popup:
       add_task:
-        heading: Add task feature
+        heading: Add Issue feature
         text: "New task/milestone feature is available only in Easy Gantt PRO \r\n<a
           href=\"https://www.easyredmine.com/easy-gantt-upgrade-to-pro\">Check for
           update!</a>"
@@ -65,9 +62,9 @@ en:
         text: "Critical path feature is available only in Easy Gantt PRO \r\n<a href=\"https://www.easyredmine.com/easy-gantt-upgrade-to-pro\">Check
           for update!</a>"
       resource:
-        easy_text: Resource management plugin is not installed - get it <a href="https://www.easyredmine.com/pricing-buy">here!</a>
+        easy_text: Resource Management Plugin is not installed - get it <a href="https://www.easyredmine.com/pricing-buy">here!</a>
         heading: Resource manager feature
-        text: Resource management feature is available only in <a href="https://www.easyredmine.com/">
+        text: Resource Management feature is available only in <a href="https://www.easyredmine.com/">
           Easy Redmine</a>
     reload_modal:
       label_errors: Errors
@@ -100,18 +97,11 @@ en:
       day_zoom: Zoom to day scale
       jump_today: Display timeline at today
       month_zoom: Zoom to month scale
-      print_fit: Scale the gantt to one page
       week_zoom: Zoom to week scale
-  easy_printable_templates_categories:
-    easy_gantt: Easy Gantt
   easy_query:
     name:
       easy_gantt_easy_issue_query: Easy Gantt
-      easy_gantt_easy_project_query: Global Easy Gantt
-  error_easy_gantt_view_permission: You do not have permission to see Easy Gantt
-  error_epm_easy_gantt_already_active: Easy gantt on the page is already active
   field_easy_gantt_default_zoom: Default zoom
-  field_easy_gantt_relation_delay_in_workdays: Relation delays in workdays
   field_easy_gantt_show_holidays: Show holidays
   field_easy_gantt_show_project_progress: Show project progress
   field_easy_gantt_show_task_soonest_start: Show soonest start
@@ -119,22 +109,21 @@ en:
   field_relation: Relation
   heading_delay_popup: Define delay in days
   heading_demo_feature_popup: Coming soon
-  heading_easy_gantts_issues: Easy Gantt Free
+  heading_easy_gantts_issues: Gantt
   label_easy_gantt: Easy Gantt
   label_easy_gantt_critical_path: Critical path
   label_easy_gantt_settings: Gantt settings
   label_filter_group_easy_gantt_easy_issue_query: Task fields
   label_finish_to_finish: Finish to finish
-  label_parent_issue_plural: Parent tasks
   label_start_to_finish: Start to finish
   label_start_to_start: Start to start
   link_easy_gantt_plugin: https://www.easyredmine.com/easy-gantt-upgrade-to-pro
-  permission_edit_easy_gantt: Edit Easy Gantt & Resource management on a project
-  permission_edit_global_easy_gantt: Edit global Easy Gantt & Resource management
-  permission_edit_personal_easy_gantt: Edit personal Easy Gantt & Resource management
-  permission_view_easy_gantt: View Easy Gantt & Resource management on a project
-  permission_view_global_easy_gantt: View global Easy Gantt & Resource management
-  permission_view_personal_easy_gantt: View personal Easy Gantt & Resource management
+  permission_edit_easy_gantt: Edit Easy Gantt & Resource Management on a project
+  permission_edit_global_easy_gantt: Edit global Easy Gantt & Resource Management
+  permission_edit_personal_easy_gantt: Edit personal Easy Gantt & Resource Management
+  permission_view_easy_gantt: View Easy Gantt & Resource Management on a project
+  permission_view_global_easy_gantt: View global Easy Gantt & Resource Management
+  permission_view_personal_easy_gantt: View personal Easy Gantt & Resource Management
   project_default_page:
     easy_gantt: Easy Gantt
   project_module_easy_gantt: Easy Gantt
@@ -142,14 +131,10 @@ en:
   text_easy_gantt_footer: Redmine Gantt powered by Easy
   text_easy_gantt_keep_link_delay_in_drag: Keep relation delay constant while task
     is dragged back
-  text_easy_gantt_print_easy_gantt_current: Show current Easy Gantt (works only from
-    page where is easy gantt loaded)
-  text_easy_gantt_relation_delay_in_workdays: Do not count non-working days in relation
-    delay
   text_easy_gantt_show_holidays: Show current user holidays on gantt (works only in
-    Easy Redmine)
-  text_easy_gantt_show_project_progress: Show completed percent on project's bar (may
-    be slow to load)
+    easyredmine)
+  text_easy_gantt_show_project_progress: Show completed percent on project's bar (can
+    be slow)
   text_easy_gantt_show_task_soonest_start: Show lowest valid dates for tasks defined
-    by relations or parent
+    by relations or parent.
   title_easy_gantt_settings: Easy Gantt

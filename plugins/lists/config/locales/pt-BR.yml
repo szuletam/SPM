@@ -1,0 +1,8 @@
+# Spanish strings go here for Rails i18n
+pt-BR:
+  label_directions: "Direcções"
+  label_direction_new: "Nova direção"
+  field_initial: "Sigla"
+  label_committees: "Comitês"
+  label_committee_new: "Novo Comitê"
+  field_periodicity: "Periodicidade"

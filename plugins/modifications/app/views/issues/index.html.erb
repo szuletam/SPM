@@ -9,12 +9,16 @@
 </div>
 
 <div class="contextual">
-  <% if !@project.nil? || User.current.admin %>
-      <% if @project %>
-          <%= link_to l(:label_issue_new), new_project_issue_path(@project), :class => 'icon icon-add' if User.current.allowed_to?(:add_issues, @project) %>
-      <% else %>
-          <%= link_to l(:label_issue_new), issues_new_path, :class => 'icon icon-add' %>
-      <% end %>
+  <% #@AIG: Ajuste para ocultar botón nueva tarea cuando no se tiene el permiso adecuado %>
+  <% if @project %>
+      <%= link_to l(:label_issue_new), new_project_issue_path(@project), :class => 'icon icon-add' if User.current.allowed_to?(:add_issues, @project) %>
+  <% else %>
+      <% User.current.projects.map {|p|
+        if User.current.allowed_to?(:add_issues, p) %>
+            <%= link_to l(:label_issue_new), issues_new_path, :class => 'icon icon-add' %>
+            <% break
+         end
+     } %>
   <% end %>
   <%= link_to l(:label_change_status), '#', :class => 'icon icon-issue_statuses2',:onclick => 'contextMenuShow2(event); return false;' %>
   <script type="text/javascript" charset="utf-8">
