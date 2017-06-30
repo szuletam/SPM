@@ -36,6 +36,7 @@ class Project < ActiveRecord::Base
   has_many :enabled_modules, :dependent => :delete_all
   has_and_belongs_to_many :trackers, lambda {order(:position)}
   has_many :issues, :dependent => :destroy
+  has_many :assigned_to, through: :issues
   has_many :issue_changes, :through => :issues, :source => :journals
   has_many :versions, lambda {order("#{Version.table_name}.effective_date DESC, #{Version.table_name}.name DESC")}, :dependent => :destroy
   belongs_to :default_version, :class_name => 'Version'
@@ -204,12 +205,7 @@ class Project < ActiveRecord::Base
       end
       user.projects_by_role.each do |role, projects|
         if role.allowed_to?(permission) && projects.any?
-          projects_subalterns = user.projects_subalterns
-          where_boss = ''
-          if projects_subalterns.any?
-            where_boss = " OR (#{Project.table_name}.id IN (#{projects_subalterns.map{|p| p.id}.join(',')}))"
-          end
-          statement_by_role[role] = "(#{Project.table_name}.id IN (#{projects.collect(&:id).join(',')}) #{where_boss})"
+          statement_by_role[role] = "(#{Project.table_name}.id IN (#{projects.collect(&:id).join(',')}))"
         end
       end
       if statement_by_role.empty?

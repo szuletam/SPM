@@ -30,10 +30,8 @@ module UserPatch
 			if @projects_subalterns && @projects_subalterns.any?
 				@projects_subalterns
 			else
-				projects = []
-				subalterns.each do |user|
-					projects += user.projects unless user.projects.nil?
-				end
+				user_subalterns = subalterns
+				projects = (user_subalterns.any? ? Project.joins(:assigned_to).where("#{Issue.table_name}.assigned_to" => user_subalterns ) : [])
 				@projects_subalterns = projects.uniq
 			end
 		end
