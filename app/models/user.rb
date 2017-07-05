@@ -557,6 +557,7 @@ class User < Principal
     if (membership = membership(project)) || (self.projects_subalterns.include?(project))
       roles += membership.roles.to_a if membership
       roles << Role.find_by_name('Boss') if self.projects_subalterns.include?(project)
+      roles
     elsif project.is_public?
       project.override_roles(builtin_role)
     else
