@@ -5,7 +5,7 @@ module EasyGantt
     attr_accessor :opened_project
 
     def default_columns_names
-      [:subject, :priority, :assigned_to]
+      [:subject, :assigned_to]
     end
 
     def entity

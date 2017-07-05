@@ -22,7 +22,12 @@ class EasyGanttProjectQuery < Query
   end
 
   def initialize_available_filters
+    status = Array.new
+    status[0] = [1, l(:project_status_active)]
+    status[1] = [5, l(:project_status_closed)]
+    status[2] = [9, l(:project_status_archived)]
     add_available_filter 'name', type: :text
+    add_available_filter 'status', :type => :list, :values => status.collect {|v| [v[1].to_s, v[0].to_s]}
     add_available_filter 'created_on', type: :date_past
     add_available_filter 'updated_on', type: :date_past
   end
