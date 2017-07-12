@@ -66,7 +66,6 @@ module UsersControllerPatch
 		end
 
 		def create_with_modification
-			raise params.inspect
 			@user = User.new(:language => Setting.default_language, :mail_notification => Setting.default_notification_option)
 			@user.safe_attributes = params[:user]
 			@user.admin = params[:user][:admin] || false
