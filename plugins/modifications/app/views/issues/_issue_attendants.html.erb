@@ -3,12 +3,16 @@
   <legend><%= l(:label_issue_attendants) %></legend>
   <p class="roles-selection" id="p-roles-selection">
     <% attendants = IssueAttendant.where(:issue_id => @issue.id) %>
+
+    <% attendants = attendants.sort_by{ |u| u.user.name}%>
+    <% attendants1 = project.users.sort_by{ |u| u.name} %>
+
     <% if @issue.new_record? && ! params[:attendants] %>
-      <% project.users.map do |u| %>
+      <% attendants1.map do |u|  %>
         <%= content_tag("label", check_box_tag('attendants[]', u.id, false, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
       <% end %>
     <% elsif params[:attendants] %>
-      <% project.users.map do |u| %>
+      <% attendants1.map do |u| %>
         <% next if params[:attendants].include?(u.id.to_s) %>
         <%= content_tag("label", check_box_tag('attendants[]', u.id, false, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
       <% end %>
@@ -20,7 +24,8 @@
       <% attendants.map do |u| %>
         <%= content_tag("label", check_box_tag('attendants[]', u.user.id, true, :id => "attendant_#{u.user.id}") + " #{u.user.name} #{u.invited ? "(#{l(:label_invited)})" : ''}", :style => "margin-left: 0px; text-align: left;") %>
       <% end %>
-        <% project.users.map do |u| %>
+
+        <% attendants1.map do |u| %>
           <% next if attendants.map{|u| u.user_id.to_s}.include?(u.id.to_s) %>
           <%= content_tag("label", check_box_tag('attendants[]', u.id, false, :id => "attendant_#{u.id}") + " #{u.name} #{}", :style => "margin-left: 0px; text-align: left;") %>
         <% end %>
@@ -31,7 +36,7 @@
     <label>
       <%= l(:label_inviteds)%>
     </label>
-    <%= select_tag "inviteds", options_from_collection_for_select(User.active.where.not(:id => project.users.map{|u| u.id.to_s}).sorted.all, "id", "name") %>
+    <%= select_tag "inviteds", options_from_collection_for_select(User.active.where.not(:id => attendants1.map{|u| u.id.to_s}).order('firstname ASC'), "id", "name") %>
     <%= link_to_function(image_tag('add.png', :style => 'vertical-align: middle;', :title => l(:label_add_inviteds)),
                          "add_inviteds();") %>
   </p>
