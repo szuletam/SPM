@@ -13,6 +13,7 @@
 /log/mongrel_debug
 /.idea/*
 /config/database.yml
+/config/configuration.yml
 /tmp/*
 /tmp/cache/*
 /tmp/pdf/*
