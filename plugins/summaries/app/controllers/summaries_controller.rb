@@ -77,8 +77,9 @@ class SummariesController < ApplicationController
 
 
         today  = Date.today#scope = Issue.open.visible.where(:tracker_id => Setting.default_application_for_task.to_i).where(:id => @issues.map{|i| i.id.to_s})
-        scope  = Issue.open.visible.joins(:project).joins(join_tracker).where(where_tracker).where(:id => @issues.map{|i| i.id.to_s}).where(:status_id => [1,9]).where(:projects => {:project_type_id => Setting.default_project_for_strategy.to_i})
-
+        #scope  = Issue.open.visible.joins(:project).joins(join_tracker).where(where_tracker).where(:id => @issues.map{|i| i.id.to_s}).where(:status_id => [1,9]).where(:projects => {:project_type_id => Setting.default_project_for_strategy.to_i})
+		scope  = Issue.joins(:project).joins(join_tracker).where(where_tracker).where(:id => @issues.map{|i| i.id.to_s}).where(:status_id => [1,9]).where(:projects => {:project_type_id => Setting.default_project_for_strategy.to_i})
+		
         #raise scope.to_sql.inspect
 
         #time = Time.now
@@ -86,8 +87,9 @@ class SummariesController < ApplicationController
         #@temp = (time + 259200).strftime("%Y/%m/%d")
         #raise  @temp.inspect
 
-        scope2 = Issue.open.visible.joins(:project).joins(join_tracker).where(where_tracker).where(:id => @issues.map{|i| i.id.to_s}).where(:status_id => 5).where(:projects => {:project_type_id => Setting.default_project_for_strategy.to_i})
-
+        #scope2 = Issue.open.visible.joins(:project).joins(join_tracker).where(where_tracker).where(:id => @issues.map{|i| i.id.to_s}).where(:status_id => 5).where(:projects => {:project_type_id => Setting.default_project_for_strategy.to_i})
+		scope2 = Issue.joins(:project).joins(join_tracker).where(where_tracker).where(:id => @issues.map{|i| i.id.to_s}).where(:status_id => 5).where(:projects => {:project_type_id => Setting.default_project_for_strategy.to_i})
+		
         my_project = params[:v] && params[:v][:project_and_descendants] && params[:v][:project_and_descendants][0] ? params[:v][:project_and_descendants][0] : ''
         if my_project != ''
         elsif @for_user

@@ -33,8 +33,9 @@ module ApplicationHelperPatch
     end
 
     def javascript_heads_with_modification
-      tags = javascript_include_tag('jquery-1.11.1-ui-1.11.0-ujs-3.1.4', 'yui3/build/yui/yui-min.js', 'yui/build/yahoo/yahoo-min.js','yui/build/yahoo-dom-event/yahoo-dom-event.js','jstree/jstree.min.js', 'application', 'responsive')
-      unless User.current.pref.warn_on_leaving_unsaved == '0'
+      #tags = javascript_include_tag('jquery-1.11.1-ui-1.11.0-ujs-3.1.4', 'yui3/build/yui/yui-min.js', 'yui/build/yahoo/yahoo-min.js','yui/build/yahoo-dom-event/yahoo-dom-event.js','jstree/jstree.min.js', 'application', 'responsive')
+      tags = javascript_include_tag('jquery-1.11.1-ui-1.11.0-ujs-3.1.4', 'jstree/jstree.min.js', 'application', 'responsive')
+	  unless User.current.pref.warn_on_leaving_unsaved == '0'
         tags << "\n".html_safe + javascript_tag("$(window).load(function(){ warnLeavingUnsaved('#{escape_javascript l(:text_warn_on_leaving_unsaved)}'); });")
       end
       tags
