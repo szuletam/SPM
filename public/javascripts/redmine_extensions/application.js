@@ -10,6 +10,4 @@
 // Read Sprockets README (https://github.com/rails/sprockets#sprockets-directives) for details
 // about supported directives.
 //
-//= require ./easy_togglers
-//= require ./jquery.entityarray
-//= require ./redmine_extensions
+//= require_tree .

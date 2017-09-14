@@ -12,3 +12,4 @@ end
 
 # Initialize the Rails application
 Rails.application.initialize!
+Redmine::Utils.relative_url_root = "/spm"  

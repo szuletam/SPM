@@ -55,4 +55,4 @@ var EasyToggler = new function() {
   };
 };
 
-EASY.schedule.main(EasyToggler.ensureToggle);
+$(document).ready(EasyToggler.ensureToggle);
