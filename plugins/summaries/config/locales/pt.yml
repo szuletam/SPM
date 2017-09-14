@@ -1,0 +1,12 @@
+# Portugues strings go here for Rails i18n
+pt:
+  permission_summaries: "Resumo"
+  project_module_summaries: "Resumo"
+  label_summaries: "Resumo"
+  field_summaries: "Resumo"
+  label_tasks_delayeds: "Tarefas atrasadas"
+  label_due_on_7: "Vencem em 7 dias"
+  label_due_on_8: "Vencem de 8 a 30 dias"
+  label_due_on_30: "Vencem em +30 dias"
+  pending_close: "Pendentes de fechamento"
+  label_tasks_opened: "Tarefas abertas"
