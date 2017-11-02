@@ -22,7 +22,8 @@ class DirectionQuery < Query
   self.available_columns = [
 		QueryColumn.new(:id, :sortable => "#{Direction.table_name}.id", :default_order => 'desc', :caption => '#', :frozen => true),
     QueryColumn.new(:initial, :sortable => "#{Direction.table_name}.initials"),
-		QueryColumn.new(:name, :sortable => "#{Direction.table_name}.name")
+		QueryColumn.new(:name, :sortable => "#{Direction.table_name}.name"),
+    QueryColumn.new(:equivalent, :sortable => "#{Direction.table_name}.equivalent")
   ]
 
   def initialize(attributes=nil, *args)
@@ -45,7 +46,7 @@ class DirectionQuery < Query
   end
   
   def default_columns_names
-    @default_columns_names ||= [:id, :initial, :name]
+    @default_columns_names ||= [:id, :initial, :name, :equivalent]
   end
 
   def build_from_params(params)

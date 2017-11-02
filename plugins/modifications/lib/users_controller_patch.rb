@@ -1,4 +1,5 @@
 require 'roo'
+require 'rest_client'
 module UsersControllerPatch
 	def self.included(base) # :nodoc:
 		base.send(:include, InstanceMethods)
@@ -12,24 +13,39 @@ module UsersControllerPatch
 		def import
 		end
 
-		def import_positions
-			unless params[:attachment]
-				render_error({:message => :notice_file_not_found, :status => 404})
-				return
-			end
-			spreadsheet = open_spreadsheet(params[:attachment])
-			header = spreadsheet.row(1)
-			data = {}
-			(2..spreadsheet.last_row).each do |i|
-				row = Hash[[header, spreadsheet.row(i)].transpose]
-				row['row_excel'] = i
-				data[row['position_id']] = row
+		#****************
+		USERNAME = "admin" # needed to access the APi
+		PASSWORD = "Admin2017$%" # needed to access the APi
+		API_BASE_URL = "https://www.renaulthome.com/APISofasa/api" # base url of the API
+		#****************
 
-			end
+		def import_positions
+
+			uri = "#{API_BASE_URL}/login" # specifying json format in the URl
+			rest_resource = RestClient::Request.execute(method: :post, url: uri, headers: {params: {username: USERNAME, password: PASSWORD}}, :content_type => 'application/x-www-form-urlencoded', :verify_ssl => OpenSSL::SSL::VERIFY_NONE)
+			api_params = JSON.parse(rest_resource, :symbolize_names => true)
+      api_params[:take] = 3000 # Nro de usuarios que devolverá la consulta
+			uri = "#{API_BASE_URL}/employees" # specifying json format in the URl
+      employees = RestClient::Request.execute(method: :get, url: uri, headers: {params: api_params}, :content_type => 'application/x-www-form-urlencoded', :verify_ssl => OpenSSL::SSL::VERIFY_NONE)
+      empl_array = JSON.parse(employees)
+
+			data = {}
+      empl_array['data'].each do |u|
+				unless u['userName'].empty?
+					data[u['position_id']] = u
+				end
+      end
+
 			token = UserImport.validate_import(data)
 			@errors = UserImport.get_errors
-			UserImport.merge_data(token) unless @errors.any?
+      @user_number = (data.length - @errors.length)
+			UserImport.merge_data(token)
 			UserImport.clean_import token
+
+      # Envía notificación de errores
+			user = User.find_by_login('admin')
+			Mailer.notification_bpu_sync(user, @errors, @user_number).deliver
+
 		end
 
 			def open_spreadsheet(file)

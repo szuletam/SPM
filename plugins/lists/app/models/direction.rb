@@ -1,7 +1,7 @@
 class Direction < ActiveRecord::Base
   include Redmine::SafeAttributes
   
-  safe_attributes 'name', 'initial'
+  safe_attributes 'name', 'initial', 'equivalent'
   
   validates_uniqueness_of :name, :initial
 

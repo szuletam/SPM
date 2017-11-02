@@ -76,7 +76,7 @@ class DirectionsController < ApplicationController
   end
 
   def update
-	@direction.safe_attributes = params[:direction].permit(:name, :initial)
+	@direction.safe_attributes = params[:direction].permit(:name, :initial, :equivalent)
 	if @direction.save
 		respond_to do |format|
 			format.html {

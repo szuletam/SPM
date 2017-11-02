@@ -1,0 +1,29 @@
+
+<p><%= l(:all_import_succes, @user_number.to_s) %></p>
+<p><%= l(:list_errors, @errors.length.to_s) %>:</p>
+
+<table class="list" width="65%">
+  <thead>
+  <tr>
+    <th><%= l(:label_error_value) %></th>
+    <th><%= l(:label_errors) %></th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @errors.each do |row, errors| %>
+      <tr>
+        <td><%= row %></td>
+        <td>
+          <ul>
+            <% errors.each do |error| %>
+                <li><%= error %></li>
+            <% end %>
+          </ul>
+        </td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+
+<p><%= l(:label_login) %>: <%= link_to @login_url, @login_url %></p>

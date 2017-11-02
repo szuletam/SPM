@@ -268,6 +268,9 @@ class Mailer < ActionMailer::Base
     @user = user
     @password = password
     @login_url = url_for(:controller => 'account', :action => 'login')
+
+    #raise @user.inspect
+
     mail :to => user.mail,
       :subject => l(:mail_subject_register, Setting.app_title)
   end

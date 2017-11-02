@@ -25,6 +25,17 @@ module MailerPatch
 				 :subject => "Acta ##{Issue.find(issue.id).spmid} difundida"
 	end
 
+  #Función que envía notificaciones por errores en la sync de BPU
+	def notification_bpu_sync(user, errors, user_number)
+	  set_language_if_valid user.language
+	  @user = user
+	  @errors = errors
+		@user_number = user_number
+	  @login_url = url_for(:controller => 'account', :action => 'login')
+	  mail :to => user.mail,
+	       :subject => l(:mail_subject_bpu_sync, Setting.app_title)
+	end
+
   module InstanceMethods
 
 		# Builds a mail for notifying to_users and cc_users about an issue update

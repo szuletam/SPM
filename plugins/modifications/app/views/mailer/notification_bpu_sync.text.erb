@@ -1,0 +1,15 @@
+<%= l(:all_import_succes, @user_number.to_s) %>
+<%= l(:list_errors, @errors.length.to_s) %>
+
+<%= l(:label_error_value) %>
+<%= l(:label_errors) %>
+
+<% @errors.each do |row, errors| %>
+    <%= row %>
+      <% errors.each do |error| %>
+          <%= error %>
+      <% end %>
+<% end %>
+
+
+<%= l(:label_login) %>: <%= @login_url %>

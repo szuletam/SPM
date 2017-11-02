@@ -3,6 +3,7 @@ es:
   label_directions: "Direcciones"
   label_direction_new: "Nueva dirección"
   field_initial: "Sigla"
+  field_equivalent: "Equivalencia"
   label_positions: "Estructura Organizacional"
   label_position_new: "Nuevo Cargo"
   field_boss_id: "Posición jéfe"

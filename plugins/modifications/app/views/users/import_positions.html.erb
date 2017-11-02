@@ -4,13 +4,14 @@
 </div>
 
 <h2><%= l(:label_import_results)%></h2>
-
+<h4><%= l(:all_import_succes, @user_number.to_s) %></h4>
+<br />
 <% if @errors.any? %>
-    <h4><%= l(:list_errors) %></h4>
+    <h4><%= l(:list_errors, @errors.length.to_s) %>:</h4>
     <table class="list" width="40%">
       <thead>
       <tr>
-        <th><%= l(:label_row) %></th>
+        <th><%= l(:label_error_value) %></th>
         <th><%= l(:label_errors) %></th>
       </tr>
       </thead>
@@ -29,8 +30,6 @@
       <% end %>
       </tbody>
     </table>
-<% else %>
-    <h4><%= l(:all_import_succes) %></h4>
 <% end %>
 
 
